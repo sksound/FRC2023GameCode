@@ -13,6 +13,9 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import edu.wpi.first.math.trajectory.TrajectoryGenerator;
+import edu.wpi.first.math.trajectory.TrajectoryUtil;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.PS4Controller.Button;
@@ -24,7 +27,16 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
+
+import com.pathplanner.lib.PathConstraints;
+import com.pathplanner.lib.PathPlanner;
+import com.pathplanner.lib.PathPlannerTrajectory;
+import com.pathplanner.lib.PathPlannerTrajectory.PathPlannerState;
 
 /*
  * This class is where the bulk of the robot should be declared.  Since Command-based is a
@@ -33,6 +45,11 @@ import java.util.List;
  * (including subsystems, commands, and button mappings) should be declared here.
  */
 public class RobotContainer {
+
+  
+
+   
+
   // The robot's subsystems
   private final DriveSubsystem m_robotDrive = new DriveSubsystem();
 
@@ -59,6 +76,11 @@ public class RobotContainer {
             m_robotDrive));
   }
 
+
+  
+
+
+
   /**
    * Use this method to define your button->command mappings. Buttons can be
    * created by
@@ -80,32 +102,91 @@ public class RobotContainer {
    *
    * @return the command to run in autonomous
    */
-  public Command getAutonomousCommand() {
-    // Create config for trajectory
-    TrajectoryConfig config = new TrajectoryConfig(
-        AutoConstants.kMaxSpeedMetersPerSecond,
-        AutoConstants.kMaxAccelerationMetersPerSecondSquared)
-        // Add kinematics to ensure max speed is actually obeyed
-        .setKinematics(DriveConstants.kDriveKinematics);
+  
 
-    // An example trajectory to follow. All units in meters.
-    Trajectory exampleTrajectory = TrajectoryGenerator.generateTrajectory(
-        // Start at the origin facing the +X direction
-        new Pose2d(0, 0, new Rotation2d(0)),
-        // Pass through these two interior waypoints, making an 's' curve path
-        List.of(new Translation2d(1, 1), new Translation2d(2, -1)),
-        // End 3 meters straight ahead of where we started, facing forward
-        new Pose2d(3, 0, new Rotation2d(0)),
-        config);
+  public Command getAutonomousCommand() {
+
+ 
+    PathPlannerTrajectory examplePath = PathPlanner.loadPath("C:\\MAXSwerve-Java-Template-main\\src\\main\\deploy\\pathplanner\\generatedJSONgeneratedJSON\\New Path.wpilib.json", new PathConstraints(4, 3));
+    PathPlannerState exampleState = (PathPlannerState) examplePath.sample(1.2);
+    System.out.println(exampleState.velocityMetersPerSecond);
+ 
+ 
+ 
+    //   String trajectoryJSON = "C:\\Users\\devhu\\Desktop\\Robotics\\Software\\MAXSwerve-Java-Template-main\\src\\main\\deploy\\pathplanner\\generatedJSONgeneratedJSON\\New Path.wpilib.json";
+  //   Trajectory trajectory = new Trajectory();
+
+  //   try {
+  //     Path trajectoryPath = Filesystem.getDeployDirectory().toPath().resolve(trajectoryJSON);
+  //     trajectory = TrajectoryUtil.fromPathweaverJson(trajectoryPath);
+  //  } catch (IOException ex) {
+  //     DriverStation.reportError("Unable to open trajectory: " + trajectoryJSON, ex.getStackTrace());
+  //  }
+
+    
+
+   
+
+    // Create config for trajectory
+
+    //An example trajectory to follow. All units in meters.
+    // var trajectoryOne =
+    //         TrajectoryGenerator.generateTrajectory(
+    //         new Pose2d(0, 0, Rotation2d.fromDegrees(0)),
+    //         List.of(new Translation2d(1.5, 0)),
+    //         new Pose2d(3, 0, Rotation2d.fromDegrees(0)),
+    //         new TrajectoryConfig(AutoConstants.kMaxSpeedMetersPerSecond,
+    //         AutoConstants.kMaxAccelerationMetersPerSecondSquared)
+    //         // Add kinematics to ensure max speed is actually obeyed
+    //         .setKinematics(DriveConstants.kDriveKinematics));
+
+    //         var trajectoryTwo =
+    //         TrajectoryGenerator.generateTrajectory(
+    //         new Pose2d(3, 0, Rotation2d.fromDegrees(0)),
+    //         List.of(new Translation2d(3, -1.5)),
+    //         new Pose2d(3, -3, Rotation2d.fromDegrees(0)),
+    //         new TrajectoryConfig(AutoConstants.kMaxSpeedMetersPerSecond,
+    //         AutoConstants.kMaxAccelerationMetersPerSecondSquared)
+    //         // Add kinematics to ensure max speed is actually obeyed
+    //         .setKinematics(DriveConstants.kDriveKinematics));
+
+    //         var trajectoryThree =
+    //         TrajectoryGenerator.generateTrajectory(
+    //         new Pose2d(3, -3, Rotation2d.fromDegrees(0)),
+    //         List.of(new Translation2d(1.5, -3)),
+    //         new Pose2d(0, -3, Rotation2d.fromDegrees(0)),
+    //         new TrajectoryConfig(AutoConstants.kMaxSpeedMetersPerSecond,
+    //         AutoConstants.kMaxAccelerationMetersPerSecondSquared)
+    //         // Add kinematics to ensure max speed is actually obeyed
+    //         .setKinematics(DriveConstants.kDriveKinematics));
+
+    //         var trajectoryFour =
+    //         TrajectoryGenerator.generateTrajectory(
+    //         new Pose2d(0, -3, Rotation2d.fromDegrees(0)),
+    //         List.of(new Translation2d(0, -1.5)),
+    //         new Pose2d(0, 0, Rotation2d.fromDegrees(0)),
+    //         new TrajectoryConfig(AutoConstants.kMaxSpeedMetersPerSecond,
+    //         AutoConstants.kMaxAccelerationMetersPerSecondSquared)
+    //         // Add kinematics to ensure max speed is actually obeyed
+    //         .setKinematics(DriveConstants.kDriveKinematics));
+    //         var concatTraj2 = trajectoryThree.concatenate(trajectoryFour);
+    //         var concatTraj1 = trajectoryOne.concatenate(trajectoryTwo);
+    //         var concatTraj = concatTraj1.concatenate(concatTraj2);
+            
+       
+
+  
 
     var thetaController = new ProfiledPIDController(
         AutoConstants.kPThetaController, 0, 0, AutoConstants.kThetaControllerConstraints);
     thetaController.enableContinuousInput(-Math.PI, Math.PI);
 
     SwerveControllerCommand swerveControllerCommand = new SwerveControllerCommand(
-        exampleTrajectory,
+        examplePath,
         m_robotDrive::getPose, // Functional interface to feed supplier
         DriveConstants.kDriveKinematics,
+
+    
 
         // Position controllers
         new PIDController(AutoConstants.kPXController, 0, 0),
@@ -114,10 +195,17 @@ public class RobotContainer {
         m_robotDrive::setModuleStates,
         m_robotDrive);
 
+
     // Reset odometry to the starting pose of the trajectory.
-    m_robotDrive.resetOdometry(exampleTrajectory.getInitialPose());
+    m_robotDrive.resetOdometry(examplePath.getInitialPose());
 
     // Run path following command, then stop at the end.
     return swerveControllerCommand.andThen(() -> m_robotDrive.drive(0, 0, 0, false));
   }
+
+
+
+
+ 
+  
 }

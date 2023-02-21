@@ -99,7 +99,7 @@ public final class Constants {
     public static final double kTurningEncoderPositionPIDMaxInput = kTurningEncoderPositionFactor; // radians
 
     public static final double kDrivingP = 0.000195;
-    public static final double kDrivingI = 0.000001;
+    public static final double kDrivingI = 0.000005;
     public static final double kDrivingD = 0.00025;
     public static final double kDrivingFF = 1 / kDriveWheelFreeSpeedRps;
     public static final double kDrivingMinOutput = -1;
