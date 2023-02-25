@@ -54,7 +54,7 @@ public class RobotContainer {
   private final DriveSubsystem m_robotDrive = new DriveSubsystem();
 
   // The driver's controller
-  Joystick m_driverController = new Joystick(OIConstants.kDriverControllerPort);
+  public Joystick m_driverController = new Joystick(OIConstants.kDriverControllerPort);
 
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
@@ -107,13 +107,13 @@ public class RobotContainer {
   public Command getAutonomousCommand() {
 
  
-    // PathPlannerTrajectory examplePath = PathPlanner.loadPath("C:\\Users\\devhu\\Desktop\\Robotics\\Software\\MAXSwerve-Java-Template-main\\src\\main\\deploy\\pathplanner\\generatedJSON\\New Path.wpilib.json", new PathConstraints(4, 3));
-    // PathPlannerState exampleState = (PathPlannerState) examplePath.sample(1.2);
-    // System.out.println(exampleState.velocityMetersPerSecond);
+    PathPlannerTrajectory examplePath = PathPlanner.loadPath("testPath", new PathConstraints(4, 3));
+    PathPlannerState exampleState = (PathPlannerState) examplePath.sample(1.2);
+    System.out.println(exampleState.velocityMetersPerSecond);
  
  
  
-    //   String trajectoryJSON = "C:\\Users\\devhu\\Desktop\\Robotics\\Software\\MAXSwerve-Java-Template-main\\src\\main\\deploy\\pathplanner\\generatedJSONgeneratedJSON\\New Path.wpilib.json";
+  //     String trajectoryJSON = "src\\main\\deploy\\pathplanner\\generatedJSONgeneratedJSON\\New Path.wpilib.json";
   //   Trajectory trajectory = new Trajectory();
 
   //   try {
@@ -133,15 +133,15 @@ public class RobotContainer {
 
             
 
-            var trajectoryOne =
-            TrajectoryGenerator.generateTrajectory(
-            new Pose2d(0, 0, Rotation2d.fromDegrees(0)),
-            List.of(new Translation2d(1.35, 0)),
-            new Pose2d(2.7, 0, Rotation2d.fromDegrees(0)),
-            new TrajectoryConfig(AutoConstants.kMaxSpeedMetersPerSecond,
-            AutoConstants.kMaxAccelerationMetersPerSecondSquared)
-            // Add kinematics to ensure max speed is actually obeyed
-            .setKinematics(DriveConstants.kDriveKinematics));
+            // var trajectoryOne =
+            // TrajectoryGenerator.generateTrajectory(
+            // new Pose2d(0, 0, Rotation2d.fromDegrees(0)),
+            // List.of(new Translation2d(1.35, 0)),
+            // new Pose2d(2.7, 0, Rotation2d.fromDegrees(0)),
+            // new TrajectoryConfig(AutoConstants.kMaxSpeedMetersPerSecond,
+            // AutoConstants.kMaxAccelerationMetersPerSecondSquared)
+            // // Add kinematics to ensure max speed is actually obeyed
+            // .setKinematics(DriveConstants.kDriveKinematics));
 
             // var trajectoryTwo =
             // TrajectoryGenerator.generateTrajectory(
@@ -174,7 +174,7 @@ public class RobotContainer {
             // .setKinematics(DriveConstants.kDriveKinematics));
 
 
-            var concatTraj = trajectoryOne;
+            //var concatTraj = trajectoryOne;
            
             
        
@@ -186,7 +186,7 @@ public class RobotContainer {
     thetaController.enableContinuousInput(-Math.PI, Math.PI);
 
     SwerveControllerCommand swerveControllerCommand = new SwerveControllerCommand(
-        concatTraj,
+        examplePath,
         m_robotDrive::getPose, // Functional interface to feed supplier
         DriveConstants.kDriveKinematics,
 
@@ -201,7 +201,7 @@ public class RobotContainer {
 
 
     // Reset odometry to the starting pose of the trajectory.
-    m_robotDrive.resetOdometry(concatTraj.getInitialPose());
+    m_robotDrive.resetOdometry(examplePath.getInitialPose());
 
     // Run path following command, then stop at the end.
     return swerveControllerCommand.andThen(() -> m_robotDrive.drive(0, 0, 0, false));

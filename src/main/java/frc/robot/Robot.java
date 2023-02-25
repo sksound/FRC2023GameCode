@@ -11,12 +11,19 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import java.io.IOException;
 import java.nio.file.Path;
 
+import org.photonvision.PhotonCamera;
+import org.photonvision.PhotonUtils;
+
 import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.trajectory.TrajectoryUtil;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
+import edu.wpi.first.wpilibj.Joystick;
+
+
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
  * each mode, as described in the TimedRobot documentation. If you change the name of this class or
@@ -28,43 +35,36 @@ public class Robot extends TimedRobot {
 
   private RobotContainer m_robotContainer;
 
+  Joystick stick;
 
-  // AHRS ahrs;
-  // float x;
-  // float y;
-  // float z;
-  // float yaw;
-  // float pitch;
-  // float roll;
-  // float velocityx;
+  final double CAMERA_HEIGHT_METERS = Units.inchesToMeters(24);
 
-  /**
-   * This function is run when the robot is first started up and should be used for any
-   * initialization code.
-   */
+  final double TARGET_HEIGHT_METERS = Units.feetToMeters(5);
 
-  // String trajectoryJSON = "paths/YourPath.wpilib.json";
-  // Trajectory trajectory = new Trajectory();
 
+  // Angle between horizontal and the camera.
+
+  final double CAMERA_PITCH_RADIANS = Units.degreesToRadians(0);
+
+
+  // How far from the target we want to be
+
+  final double GOAL_RANGE_METERS = Units.feetToMeters(3);
+
+    // Change this to match the name of your camera
+
+    PhotonCamera camera = new PhotonCamera("photonvision");
+
+
+ 
  
   @Override
   public void robotInit() {
 
-
-
-
-    
-
-
-  //   try {
-  //     Path trajectoryPath = Filesystem.getDeployDirectory().toPath().resolve(trajectoryJSON);
-  //     trajectory = TrajectoryUtil.fromPathweaverJson(trajectoryPath);
-  //  } catch (IOException ex) {
-  //     DriverStation.reportError("Unable to open trajectory: " + trajectoryJSON, ex.getStackTrace());
-  //  }
     // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
     // autonomous chooser on the dashboard.
     m_robotContainer = new RobotContainer();
+    stick = m_robotContainer.m_driverController;
   }
 
   /**
@@ -96,12 +96,6 @@ public class Robot extends TimedRobot {
     m_autonomousCommand = m_robotContainer.getAutonomousCommand();
 
 
-    /*
-     * String autoSelected = SmartDashboard.getString("Auto Selector",
-     * "Default"); switch(autoSelected) { case "My Auto": autonomousCommand
-     * = new MyAutoCommand(); break; case "Default Auto": default:
-     * autonomousCommand = new ExampleCommand(); break; }
-     */
 
     // schedule the autonomous command (example)
     if (m_autonomousCommand != null) {
@@ -126,48 +120,41 @@ public class Robot extends TimedRobot {
       m_autonomousCommand.cancel();
     }
 
-    // try {
-    //   /* Communicate w/navX MXP via the MXP SPI Bus.                                     */
-    //   /* Alternatively:  I2C.Port.kMXP, SerialPort.Port.kMXP or SerialPort.Port.kUSB     */
-    //   /* See http://navx-mxp.kauailabs.com/guidance/selecting-an-interface/ for details. */
-    //   ahrs = new AHRS(SPI.Port.kMXP);  
-    // } catch (RuntimeException ex ) {
-    //   DriverStation.reportError("Error instantiating navX MXP:  " + ex.getMessage(), true);
-    //   System.out.println("AHRS Not Working");
-    
   }
 
   /** This function is called periodically during operator control. */
   @Override
   public void teleopPeriodic() {
   
-    // x = ahrs.getWorldLinearAccelX();
-    // y = ahrs.getWorldLinearAccelY();
-    // z = ahrs.getWorldLinearAccelZ();
-    // yaw = ahrs.getYaw();
-    // pitch = ahrs.getPitch();
-    // roll = ahrs.getRoll();
-    // velocityx = ahrs.getVelocityX();
+    if(stick.getRawButton(0)){
+        // Vision-alignment mode
+            // Query the latest result from PhotonVision
+            var result = camera.getLatestResult();
+    
 
-    // System.out.println("Yaw" + yaw);
-    // System.out.println("Pitch: " + pitch);
-    // System.out.println("Roll: " + roll);
+    if (result.hasTargets()) {
 
-    // System.out.println("X: " + x);
-    // /** System.out.println("Y: " + y);
-    // System.out.println("Z: " + z);
-    // System.out.println("Yaw: " + yaw);
-    // System.out.println("Pitch: " + pitch);
-    // System.out.println("Roll: " + roll); */
+      // First calculate range
 
-    // System.out.println("Velocity X: " + velocityx);
+      double range =
 
-    /** DriverStation.reportError("X: " + x, false);
-    DriverStation.reportError("Y: " + y, false);
-    DriverStation.reportError("Z: " + z, false);
-    DriverStation.reportError("Yaw: " + yaw, false);
-    DriverStation.reportError("Pitch: " + pitch, false);
-    DriverStation.reportError("Roll: " + roll, false); */
+              PhotonUtils.calculateDistanceToTargetMeters(
+
+                      CAMERA_HEIGHT_METERS,
+
+                      TARGET_HEIGHT_METERS,
+
+                      CAMERA_PITCH_RADIANS,
+
+                      Units.degreesToRadians(result.getBestTarget().getPitch()));
+
+                      System.out.println(range);
+
+    }
+  }
+
+  
+                      
   
   
   }
