@@ -55,6 +55,7 @@ public class RobotContainer {
 
   // The driver's controller
   public Joystick m_driverController = new Joystick(OIConstants.kDriverControllerPort);
+  public Joystick m_driverController2 = new Joystick(OIConstants.kDriverControllerPort2);
 
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
@@ -72,8 +73,15 @@ public class RobotContainer {
                 MathUtil.applyDeadband(-m_driverController.getRawAxis(1), 0.06),
                 MathUtil.applyDeadband(-m_driverController.getRawAxis(0), 0.06),
                 MathUtil.applyDeadband(-m_driverController.getRawAxis(2), 0.06),
+
                 true),
-            m_robotDrive));
+            m_robotDrive)
+
+            //make deadbands for 2nd controller
+            
+            
+            
+            );
   }
 
 
@@ -107,9 +115,9 @@ public class RobotContainer {
   public Command getAutonomousCommand() {
 
  
-    PathPlannerTrajectory examplePath = PathPlanner.loadPath("testPath", new PathConstraints(4, 3));
-    PathPlannerState exampleState = (PathPlannerState) examplePath.sample(1.2);
-    System.out.println(exampleState.velocityMetersPerSecond);
+    PathPlannerTrajectory examplePath = PathPlanner.loadPath("ChargingStation", new PathConstraints(4, 3));
+    //PathPlannerState exampleState = (PathPlannerState) examplePath.sample(1.2);
+    //System.out.println(exampleState.velocityMetersPerSecond);
  
  
  

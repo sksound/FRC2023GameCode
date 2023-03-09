@@ -5,6 +5,7 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 
@@ -19,9 +20,17 @@ import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.trajectory.TrajectoryUtil;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.PneumaticsModuleType;
+
+import com.revrobotics.CANSparkMax;
+import com.revrobotics.CANSparkMaxLowLevel.MotorType;
+
+import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.cscore.UsbCamera; 
 
 
 /**
@@ -34,26 +43,33 @@ public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
 
   private RobotContainer m_robotContainer;
+  
 
   Joystick stick;
+  Joystick stick2 = new Joystick(1);
 
-  final double CAMERA_HEIGHT_METERS = Units.inchesToMeters(24);
+  double swerveSpeed;
+  double rotateSpeed;
 
-  final double TARGET_HEIGHT_METERS = Units.feetToMeters(5);
-
-
-  // Angle between horizontal and the camera.
-
-  final double CAMERA_PITCH_RADIANS = Units.degreesToRadians(0);
+  double armMotorSpeedUp = 1;
+  double armMotorSpeedDown = 1;
 
 
-  // How far from the target we want to be
 
-  final double GOAL_RANGE_METERS = Units.feetToMeters(3);
+
+  public CANSparkMax arm_motor = new CANSparkMax(18, MotorType.kBrushless);
+  public CANSparkMax arm_motor2 = new CANSparkMax(19, MotorType.kBrushless);
+
+  // Pneumatics
+  public static final DoubleSolenoid telescopic_arm  = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 3, 2);
+ 
 
     // Change this to match the name of your camera
 
-    PhotonCamera camera = new PhotonCamera("photonvision");
+    //PhotonCamera camera = new PhotonCamera("OV5647");
+
+  //UsbCamera cam1;
+  //CameraServer cam2;
 
 
  
@@ -65,6 +81,8 @@ public class Robot extends TimedRobot {
     // autonomous chooser on the dashboard.
     m_robotContainer = new RobotContainer();
     stick = m_robotContainer.m_driverController;
+    swerveSpeed = Constants.DriveConstants.kMaxSpeedMetersPerSecond;
+    rotateSpeed = Constants.DriveConstants.kMaxAngularSpeed;
   }
 
   /**
@@ -106,7 +124,11 @@ public class Robot extends TimedRobot {
   /** This function is called periodically during autonomous. */
   @Override
   public void autonomousPeriodic () {
+  
+  
+  
   m_autonomousCommand.execute();
+ 
 
   }
 
@@ -119,41 +141,57 @@ public class Robot extends TimedRobot {
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
+    
+    //cam1 = CameraServer.startAutomaticCapture(0);
 
   }
 
   /** This function is called periodically during operator control. */
   @Override
   public void teleopPeriodic() {
-  
-    if(stick.getRawButton(0)){
-        // Vision-alignment mode
-            // Query the latest result from PhotonVision
-            var result = camera.getLatestResult();
-    
 
-    if (result.hasTargets()) {
-
-      // First calculate range
-
-      double range =
-
-              PhotonUtils.calculateDistanceToTargetMeters(
-
-                      CAMERA_HEIGHT_METERS,
-
-                      TARGET_HEIGHT_METERS,
-
-                      CAMERA_PITCH_RADIANS,
-
-                      Units.degreesToRadians(result.getBestTarget().getPitch()));
-
-                      System.out.println(range);
+    if(stick.getRawButton(1)){
+      Constants.DriveConstants.kMaxSpeedMetersPerSecond = 5;
 
     }
-  }
+    else{
+      Constants.DriveConstants.kMaxSpeedMetersPerSecond = 3;
 
+    }
+
+      
+    
+    //double armSpeedUp = stick2.getRawAxis(1) * armMotorSpeedUp;
+    // double armSpeedDown = stick2.getRawAxis(1) * armMotorSpeedDown;
+    
+    
+    //arm movement
+
+    
+    if(stick2.getRawButton(1 )){
+      arm_motor.set(1);
+      arm_motor2.set(1);
+    }
+    else if(stick2.getRawButton(4)){
+      arm_motor.set(-1);
+      arm_motor2.set(-1);
+    }
+    else{
+      arm_motor.set(0);
+      arm_motor2.set(0);
+    }
+    
   
+ 
+
+    if(stick2.getRawButton(2)){
+      telescopic_arm.set(Value.kReverse);
+      System.out.println("switched reverse");
+    }
+    if(stick2.getRawButton(3)){
+      telescopic_arm.set(Value.kForward);
+      System.out.println("switched forward");
+    }
                       
   
   
