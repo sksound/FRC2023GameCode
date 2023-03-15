@@ -24,19 +24,25 @@ import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.OIConstants;
 import frc.robot.subsystems.DriveSubsystem;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.RunCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.pathplanner.lib.PathConstraints;
 import com.pathplanner.lib.PathPlanner;
 import com.pathplanner.lib.PathPlannerTrajectory;
 import com.pathplanner.lib.PathPlannerTrajectory.PathPlannerState;
+import com.pathplanner.lib.commands.FollowPathWithEvents;
 
 /*
  * This class is where the bulk of the robot should be declared.  Since Command-based is a
@@ -110,12 +116,62 @@ public class RobotContainer {
    *
    * @return the command to run in autonomous
    */
+
+public class stopRobot extends CommandBase{
+
+
+
+
+public  stopRobot(DriveSubsystem drive){
   
+drive.stopAllMotors();
+
+}
+
+
+}
+public Command newCommand(){
+
+  var thetaController = new ProfiledPIDController(
+        AutoConstants.kPThetaController, 0, 0, AutoConstants.kThetaControllerConstraints);
+    thetaController.enableContinuousInput(-Math.PI, Math.PI);
+
+
+
+  List<PathPlannerTrajectory> autoPaths = PathPlanner.loadPathGroup("superCoolAuto", 2, 3);
+
+  Command autoTest = new SequentialCommandGroup(
+    new FollowPathWithEvents(new SwerveControllerCommand(
+    autoPaths.get(0), m_robotDrive::getPose, DriveConstants.kDriveKinematics, new PIDController(AutoConstants.kPXController, 0, 0), new PIDController(AutoConstants.kPYController, 0, 0), thetaController, m_robotDrive::setModuleStates, m_robotDrive), autoPaths.get(0).getMarkers(), null),
+    new stopRobot(m_robotDrive),
+    new WaitCommand(2.5),
+    new FollowPathWithEvents(new SwerveControllerCommand(
+    autoPaths.get(1), m_robotDrive::getPose, DriveConstants.kDriveKinematics, new PIDController(AutoConstants.kPXController, 0, 0), new PIDController(AutoConstants.kPYController, 0, 0), thetaController, m_robotDrive::setModuleStates, m_robotDrive), autoPaths.get(1).getMarkers(), null),
+    new stopRobot(m_robotDrive),
+    new WaitCommand(2.5),
+    new FollowPathWithEvents(new SwerveControllerCommand(
+    autoPaths.get(2), m_robotDrive::getPose, DriveConstants.kDriveKinematics, new PIDController(AutoConstants.kPXController, 0, 0), new PIDController(AutoConstants.kPYController, 0, 0), thetaController, m_robotDrive::setModuleStates, m_robotDrive), autoPaths.get(2).getMarkers(), null),
+    new stopRobot(m_robotDrive),
+    new WaitCommand(10)
+    
+    
+    
+  
+  );
+
+  
+  m_robotDrive.resetOdometry(autoPaths.get(0).getInitialPose());
+  //m_robotDrive.resetOdometry(autoPaths.get(1).getInitialPose());
+ 
+  return autoTest.andThen(() -> m_robotDrive.drive(0, 0, 0, false));
+  
+}
+
 
   public Command getAutonomousCommand() {
 
  
-    PathPlannerTrajectory examplePath = PathPlanner.loadPath("ChargingStation", new PathConstraints(4, 3));
+    PathPlannerTrajectory examplePath = PathPlanner.loadPath("autoTest", new PathConstraints(4, 3));
     //PathPlannerState exampleState = (PathPlannerState) examplePath.sample(1.2);
     //System.out.println(exampleState.velocityMetersPerSecond);
  

@@ -66,6 +66,8 @@ public class DriveSubsystem extends SubsystemBase {
           m_rearRight.getPosition()
       });
 
+      
+
   /** Creates a new DriveSubsystem. */
   public DriveSubsystem() {
   }
@@ -196,5 +198,12 @@ public class DriveSubsystem extends SubsystemBase {
    */
   public double getTurnRate() {
     return m_gyro.getRate() * (DriveConstants.kGyroReversed ? -1.0 : 1.0);
+  }
+
+  public void stopAllMotors(){
+    m_frontLeft.stopMotors();
+    m_frontRight.stopMotors();
+    m_rearLeft.stopMotors();
+    m_rearRight.stopMotors();
   }
 }
