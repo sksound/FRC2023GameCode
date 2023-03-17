@@ -4,6 +4,7 @@
 
 package frc.robot.subsystems;
 
+import edu.wpi.first.math.controller.RamseteController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -11,6 +12,7 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.ADIS16470_IMU;
 import frc.robot.Constants.DriveConstants;
@@ -52,6 +54,11 @@ public class DriveSubsystem extends SubsystemBase {
   private final AHRS m_gyro = new AHRS();
   //AHRS need to replace this
 
+
+  RamseteController controller1 = new RamseteController();
+  RamseteController controller2 = new RamseteController(2.1, 0.8);
+
+  Trajectory example;
  
 
 
@@ -206,4 +213,6 @@ public class DriveSubsystem extends SubsystemBase {
     m_rearLeft.stopMotors();
     m_rearRight.stopMotors();
   }
+
+  
 }

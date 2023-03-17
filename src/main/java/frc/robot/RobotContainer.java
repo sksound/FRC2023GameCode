@@ -7,14 +7,20 @@ package frc.robot;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.controller.RamseteController;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import edu.wpi.first.math.trajectory.TrajectoryGenerator;
 import edu.wpi.first.math.trajectory.TrajectoryUtil;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
@@ -25,6 +31,8 @@ import frc.robot.Constants.OIConstants;
 import frc.robot.subsystems.DriveSubsystem;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandBase;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
@@ -36,13 +44,18 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.pathplanner.lib.PathConstraints;
 import com.pathplanner.lib.PathPlanner;
 import com.pathplanner.lib.PathPlannerTrajectory;
 import com.pathplanner.lib.PathPlannerTrajectory.PathPlannerState;
 import com.pathplanner.lib.commands.FollowPathWithEvents;
+import com.revrobotics.CANSparkMax;
+import com.revrobotics.RelativeEncoder;
+import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 /*
  * This class is where the bulk of the robot should be declared.  Since Command-based is a
@@ -62,6 +75,21 @@ public class RobotContainer {
   // The driver's controller
   public Joystick m_driverController = new Joystick(OIConstants.kDriverControllerPort);
   public Joystick m_driverController2 = new Joystick(OIConstants.kDriverControllerPort2);
+
+  public static final HashMap <String, Command> autoEventMap = new HashMap<>();
+
+  // public CANSparkMax arm_motor = new CANSparkMax(18, MotorType.kBrushless);
+  // public CANSparkMax arm_motor2 = new CANSparkMax(19, MotorType.kBrushless);
+
+  // RelativeEncoder throughBoreEncoder = arm_motor.getEncoder();
+
+  // double armEncoderPosition = throughBoreEncoder.getPosition();
+
+  
+
+  
+
+  
 
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
@@ -117,19 +145,57 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
 
+// public class updateSpeed extends CommandBase{
+
+//   public updateSpeed(Pose2d currentRobotPose){
+//     Trajectory.State goal = example.sample(3.4); // sample the trajectory at 3.4 seconds from the beginning
+//     ChassisSpeeds adjustedSpeeds = controller2.calculate(currentRobotPose, goal);
+//   }
+
+// }
+
 public class stopRobot extends CommandBase{
 
 
 
 
-public  stopRobot(DriveSubsystem drive){
+
+
+public stopRobot(DriveSubsystem drive){
   
 drive.stopAllMotors();
 
+
 }
 
 
 }
+
+
+
+// public class stopRobot extends CommandBase {
+
+  
+
+//   private final DriveSubsystem m_drive;
+
+//   public stopRobot(DriveSubsystem drive) {
+//       m_drive = drive;
+//       addRequirements(drive);
+//   }
+
+//   @Override
+//   public void initialize() {
+//       m_drive.setModuleStates(new SwerveModuleState[DriveConstants.kNumSwerveModules]);
+//   }
+
+//   @Override
+//   public void execute() {
+//       m_drive.setModuleStates(new SwerveModuleState[DriveConstants.kNumSwerveModules]);
+//   }
+// }
+
+
 public Command newCommand(){
 
   var thetaController = new ProfiledPIDController(
@@ -137,21 +203,26 @@ public Command newCommand(){
     thetaController.enableContinuousInput(-Math.PI, Math.PI);
 
 
+  autoEventMap.put("event", new PrintCommand("event passed"));
+
+
 
   List<PathPlannerTrajectory> autoPaths = PathPlanner.loadPathGroup("superCoolAuto", 2, 3);
 
   Command autoTest = new SequentialCommandGroup(
     new FollowPathWithEvents(new SwerveControllerCommand(
-    autoPaths.get(0), m_robotDrive::getPose, DriveConstants.kDriveKinematics, new PIDController(AutoConstants.kPXController, 0, 0), new PIDController(AutoConstants.kPYController, 0, 0), thetaController, m_robotDrive::setModuleStates, m_robotDrive), autoPaths.get(0).getMarkers(), null),
-    new stopRobot(m_robotDrive),
+    autoPaths.get(0), m_robotDrive::getPose, DriveConstants.kDriveKinematics, new PIDController(AutoConstants.kPXController, 0, 0), new PIDController(AutoConstants.kPYController, 0, 0), thetaController, m_robotDrive::setModuleStates, m_robotDrive), autoPaths.get(0).getMarkers(), autoEventMap),
+    new InstantCommand(m_robotDrive::stopAllMotors, m_robotDrive),
     new WaitCommand(2.5),
+    new InstantCommand(m_robotDrive::stopAllMotors, m_robotDrive),
     new FollowPathWithEvents(new SwerveControllerCommand(
-    autoPaths.get(1), m_robotDrive::getPose, DriveConstants.kDriveKinematics, new PIDController(AutoConstants.kPXController, 0, 0), new PIDController(AutoConstants.kPYController, 0, 0), thetaController, m_robotDrive::setModuleStates, m_robotDrive), autoPaths.get(1).getMarkers(), null),
-    new stopRobot(m_robotDrive),
+    autoPaths.get(1), m_robotDrive::getPose, DriveConstants.kDriveKinematics, new PIDController(AutoConstants.kPXController, 0, 0), new PIDController(AutoConstants.kPYController, 0, 0), thetaController, m_robotDrive::setModuleStates, m_robotDrive), autoPaths.get(1).getMarkers(), autoEventMap),
+    new InstantCommand(m_robotDrive::stopAllMotors, m_robotDrive),
     new WaitCommand(2.5),
+    new InstantCommand(m_robotDrive::stopAllMotors, m_robotDrive),
     new FollowPathWithEvents(new SwerveControllerCommand(
-    autoPaths.get(2), m_robotDrive::getPose, DriveConstants.kDriveKinematics, new PIDController(AutoConstants.kPXController, 0, 0), new PIDController(AutoConstants.kPYController, 0, 0), thetaController, m_robotDrive::setModuleStates, m_robotDrive), autoPaths.get(2).getMarkers(), null),
-    new stopRobot(m_robotDrive),
+    autoPaths.get(2), m_robotDrive::getPose, DriveConstants.kDriveKinematics, new PIDController(AutoConstants.kPXController, 0, 0), new PIDController(AutoConstants.kPYController, 0, 0), thetaController, m_robotDrive::setModuleStates, m_robotDrive), autoPaths.get(2).getMarkers(), autoEventMap),
+    new InstantCommand(m_robotDrive::stopAllMotors, m_robotDrive),
     new WaitCommand(10)
     
     

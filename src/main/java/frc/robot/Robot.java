@@ -17,16 +17,19 @@ import org.photonvision.PhotonUtils;
 
 import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.wpilibj.SPI;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.trajectory.TrajectoryUtil;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 
 import com.revrobotics.CANSparkMax;
+import com.revrobotics.RelativeEncoder;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.first.cameraserver.CameraServer;
@@ -40,6 +43,9 @@ import edu.wpi.first.cscore.UsbCamera;
  * project.
  */
 public class Robot extends TimedRobot {
+
+  
+
   private Command m_autonomousCommand;
 
   private RobotContainer m_robotContainer;
@@ -54,11 +60,22 @@ public class Robot extends TimedRobot {
   double armMotorSpeedUp = 1;
   double armMotorSpeedDown = 1;
 
+  
+
 
 
 
   public CANSparkMax arm_motor = new CANSparkMax(18, MotorType.kBrushless);
   public CANSparkMax arm_motor2 = new CANSparkMax(19, MotorType.kBrushless);
+
+  // RelativeEncoder throughBoreEncoder = arm_motor.getEncoder();
+
+  // double armEncoderPosition = throughBoreEncoder.getPosition();
+
+  DutyCycleEncoder encoder = new DutyCycleEncoder(0);
+
+  PIDController pid = new PIDController(1, 0, 0);
+  
 
   // Pneumatics
   public static final DoubleSolenoid telescopic_arm  = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 3, 2);
@@ -181,7 +198,7 @@ public class Robot extends TimedRobot {
       arm_motor2.set(0);
     }
     
-  
+    
  
 
     if(stick2.getRawButton(2)){
@@ -192,6 +209,18 @@ public class Robot extends TimedRobot {
       telescopic_arm.set(Value.kForward);
       System.out.println("switched forward");
     }
+
+    if(stick.getRawButton(3)){
+      arm_motor.set(pid.calculate(encoder.getDistance(), .5));
+      arm_motor2.set(pid.calculate(encoder.getDistance(), .5));
+      System.out.println(encoder.getDistance());
+    }
+      else{
+      arm_motor.set(pid.calculate(encoder.getDistance(), 0));
+      arm_motor2.set(pid.calculate(encoder.getDistance(), 0));
+      System.out.println(encoder.getDistance());
+      }
+    
                       
   
   

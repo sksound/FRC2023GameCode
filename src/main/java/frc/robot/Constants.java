@@ -12,6 +12,9 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
+import edu.wpi.first.wpilibj2.command.Command;
+
+import java.util.HashMap;
 
 import com.kauailabs.navx.frc.AHRS;
 import com.kauailabs.navx.frc.AHRS.SerialDataType;
@@ -33,6 +36,8 @@ import com.kauailabs.navx.frc.AHRS.SerialDataType;
  */
 public final class Constants {
   public static final class DriveConstants {
+
+    public static final int kNumSwerveModules = 4;
     
 
     // Driving Parameters - Note that these are not the maximum capable speeds of
@@ -146,6 +151,20 @@ public final class Constants {
   public static final class NeoMotorConstants {
     public static final double kFreeSpeedRpm = 5676;
   }
+
+  // public static final class armEncoder{
+
+
+  //   public static final double kTurningEncoderPositionFactorArm = (2 * Math.PI); // radians
+  //   public static final double kTurningEncoderVelocityFactorArm = (2 * Math.PI) / 60.0; // radians per second
+
+  //   public static final double kTurningEncoderPositionPIDMinInputArm = 0; // radians
+  //   public static final double kTurningEncoderPositionPIDMaxInputArm = kTurningEncoderPositionFactorArm; // radians
+
+
+  // }
+
+  
 
 
 }
