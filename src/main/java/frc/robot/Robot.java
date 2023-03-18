@@ -5,12 +5,39 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.RobotContainer.autoBalance;
+import frc.robot.subsystems.DriveSubsystem;
+
+import java.io.IOException;
+import java.nio.file.Path;
+
+import org.photonvision.PhotonCamera;
+import org.photonvision.PhotonUtils;
 
 import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.wpilibj.SPI;
+import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.trajectory.Trajectory;
+import edu.wpi.first.math.trajectory.TrajectoryUtil;
+import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DutyCycleEncoder;
+import edu.wpi.first.wpilibj.Filesystem;
+import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.PneumaticsModuleType;
+
+import com.revrobotics.CANSparkMax;
+import com.revrobotics.RelativeEncoder;
+import com.revrobotics.CANSparkMaxLowLevel.MotorType;
+
+import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.cscore.UsbCamera; 
+
+
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
  * each mode, as described in the TimedRobot documentation. If you change the name of this class or
@@ -18,29 +45,67 @@ import edu.wpi.first.wpilibj.DriverStation;
  * project.
  */
 public class Robot extends TimedRobot {
+
+  
+
   private Command m_autonomousCommand;
 
   private RobotContainer m_robotContainer;
+  
+
+  Joystick stick;
+  Joystick stick2 = new Joystick(1);
+
+  double swerveSpeed;
+  double rotateSpeed;
+
+  double armMotorSpeedUp = 1;
+  double armMotorSpeedDown = 1;
+
+  
 
 
-  // AHRS ahrs;
-  // float x;
-  // float y;
-  // float z;
-  // float yaw;
-  // float pitch;
-  // float roll;
-  // float velocityx;
 
-  /**
-   * This function is run when the robot is first started up and should be used for any
-   * initialization code.
-   */
+  
+
+
+
+
+  public CANSparkMax arm_motor = new CANSparkMax(18, MotorType.kBrushless);
+  public CANSparkMax arm_motor2 = new CANSparkMax(19, MotorType.kBrushless);
+
+  // RelativeEncoder throughBoreEncoder = arm_motor.getEncoder();
+
+  // double armEncoderPosition = throughBoreEncoder.getPosition();
+
+  DutyCycleEncoder encoder = new DutyCycleEncoder(0);
+
+  PIDController pid = new PIDController(1, 0, 0);
+  
+
+  // Pneumatics
+  public static final DoubleSolenoid telescopic_arm  = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 3, 2);
+ 
+
+    // Change this to match the name of your camera
+
+    //PhotonCamera camera = new PhotonCamera("OV5647");
+
+  //UsbCamera cam1;
+  //CameraServer cam2;
+
+
+ 
+ 
   @Override
   public void robotInit() {
+
     // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
     // autonomous chooser on the dashboard.
     m_robotContainer = new RobotContainer();
+    stick = m_robotContainer.m_driverController;
+    swerveSpeed = Constants.DriveConstants.kMaxSpeedMetersPerSecond;
+    rotateSpeed = Constants.DriveConstants.kMaxAngularSpeed;
   }
 
   /**
@@ -69,14 +134,9 @@ public class Robot extends TimedRobot {
   /** This autonomous runs the autonomous command selected by your {@link RobotContainer} class. */
   @Override
   public void autonomousInit() {
-    m_autonomousCommand = m_robotContainer.getAutonomousCommand();
+    //m_autonomousCommand = m_robotContainer.getAutonomousCommand();
+  m_autonomousCommand = m_robotContainer.newCommand();
 
-    /*
-     * String autoSelected = SmartDashboard.getString("Auto Selector",
-     * "Default"); switch(autoSelected) { case "My Auto": autonomousCommand
-     * = new MyAutoCommand(); break; case "Default Auto": default:
-     * autonomousCommand = new ExampleCommand(); break; }
-     */
 
     // schedule the autonomous command (example)
     if (m_autonomousCommand != null) {
@@ -86,7 +146,16 @@ public class Robot extends TimedRobot {
 
   /** This function is called periodically during autonomous. */
   @Override
-  public void autonomousPeriodic() {}
+  public void autonomousPeriodic () {
+  if(m_robotContainer.m_robotDrive.dummyBoo){
+    m_robotContainer.m_robotDrive.autoBalance();
+  }
+  
+  
+  m_autonomousCommand.execute();
+ 
+
+  }
 
   @Override
   public void teleopInit() {
@@ -97,49 +166,75 @@ public class Robot extends TimedRobot {
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
-
-    // try {
-    //   /* Communicate w/navX MXP via the MXP SPI Bus.                                     */
-    //   /* Alternatively:  I2C.Port.kMXP, SerialPort.Port.kMXP or SerialPort.Port.kUSB     */
-    //   /* See http://navx-mxp.kauailabs.com/guidance/selecting-an-interface/ for details. */
-    //   ahrs = new AHRS(SPI.Port.kMXP);  
-    // } catch (RuntimeException ex ) {
-    //   DriverStation.reportError("Error instantiating navX MXP:  " + ex.getMessage(), true);
-    //   System.out.println("AHRS Not Working");
     
+    //cam1 = CameraServer.startAutomaticCapture(0);
+
   }
+
+
 
   /** This function is called periodically during operator control. */
   @Override
   public void teleopPeriodic() {
-  
-    // x = ahrs.getWorldLinearAccelX();
-    // y = ahrs.getWorldLinearAccelY();
-    // z = ahrs.getWorldLinearAccelZ();
-    // yaw = ahrs.getYaw();
-    // pitch = ahrs.getPitch();
-    // roll = ahrs.getRoll();
-    // velocityx = ahrs.getVelocityX();
 
-    // System.out.println("Yaw" + yaw);
-    // System.out.println("Pitch: " + pitch);
-    // System.out.println("Roll: " + roll);
+    if(stick.getRawButton(1)){
+      Constants.DriveConstants.kMaxSpeedMetersPerSecond = 5;
 
-    // System.out.println("X: " + x);
-    // /** System.out.println("Y: " + y);
-    // System.out.println("Z: " + z);
-    // System.out.println("Yaw: " + yaw);
-    // System.out.println("Pitch: " + pitch);
-    // System.out.println("Roll: " + roll); */
+    }
+    else{
+      Constants.DriveConstants.kMaxSpeedMetersPerSecond = 3;
 
-    // System.out.println("Velocity X: " + velocityx);
+    }
 
-    /** DriverStation.reportError("X: " + x, false);
-    DriverStation.reportError("Y: " + y, false);
-    DriverStation.reportError("Z: " + z, false);
-    DriverStation.reportError("Yaw: " + yaw, false);
-    DriverStation.reportError("Pitch: " + pitch, false);
-    DriverStation.reportError("Roll: " + roll, false); */
+      
+    
+    //double armSpeedUp = stick2.getRawAxis(1) * armMotorSpeedUp;
+    // double armSpeedDown = stick2.getRawAxis(1) * armMotorSpeedDown;
+    
+    
+    //arm movement
+
+    
+    if(stick2.getRawButton(1 )){
+      arm_motor.set(1);
+      arm_motor2.set(1);
+    }
+    else if(stick2.getRawButton(4)){
+      arm_motor.set(-1);
+      arm_motor2.set(-1);
+    }
+    else{
+      arm_motor.set(0);
+      arm_motor2.set(0);
+    }
+    
+    
+ 
+
+    if(stick2.getRawButton(2)){
+      telescopic_arm.set(Value.kReverse);
+      System.out.println("switched reverse");
+    }
+    if(stick2.getRawButton(3)){
+      telescopic_arm.set(Value.kForward);
+      System.out.println("switched forward");
+    }
+
+    if(stick.getRawButton(3)){
+      arm_motor.set(pid.calculate(encoder.getDistance(), .5));
+      arm_motor2.set(pid.calculate(encoder.getDistance(), .5));
+      //System.out.println(encoder.getDistance());
+    }
+      else{
+      arm_motor.set(pid.calculate(encoder.getDistance(), 0));
+      arm_motor2.set(pid.calculate(encoder.getDistance(), 0));
+      //System.out.println(encoder.getDistance());
+      }
+
+    
+    
+    
+                      
   
   
   }

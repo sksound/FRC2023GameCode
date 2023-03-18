@@ -4,6 +4,8 @@
 
 package frc.robot.subsystems;
 
+import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.RamseteController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -11,13 +13,22 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.trajectory.Trajectory;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.ADIS16470_IMU;
+import frc.robot.RobotContainer;
 import frc.robot.Constants.DriveConstants;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+
+import org.photonvision.PhotonUtils;
 
 import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.DriverStation;
+
+
+
+
 
 public class DriveSubsystem extends SubsystemBase {
   // Create MAXSwerveModules
@@ -42,8 +53,20 @@ public class DriveSubsystem extends SubsystemBase {
       DriveConstants.kBackRightChassisAngularOffset);
 
   // The gyro sensor
-  private final AHRS m_gyro = new AHRS();
+  public final static AHRS m_gyro = new AHRS();
+
+  PIDController navxBalance = new PIDController(.005, 0, 0);
+
+  public boolean dummyBoo = false;
   //AHRS need to replace this
+
+
+  // RamseteController controller1 = new RamseteController();
+  // RamseteController controller2 = new RamseteController(2.1, 0.8);
+
+  // Trajectory example;
+ 
+
 
   // Odometry class for tracking robot pose
   SwerveDriveOdometry m_odometry = new SwerveDriveOdometry(
@@ -56,6 +79,8 @@ public class DriveSubsystem extends SubsystemBase {
           m_rearRight.getPosition()
       });
 
+      
+
   /** Creates a new DriveSubsystem. */
   public DriveSubsystem() {
   }
@@ -66,8 +91,6 @@ public class DriveSubsystem extends SubsystemBase {
   @Override
   public void periodic() {
 
-    System.out.println(m_gyro.getAngle());
-
     // Update the odometry in the periodic block
     m_odometry.update(
         Rotation2d.fromDegrees(-m_gyro.getAngle()),
@@ -77,6 +100,9 @@ public class DriveSubsystem extends SubsystemBase {
             m_rearLeft.getPosition(),
             m_rearRight.getPosition()
         });
+
+
+        
   }
 
   /**
@@ -186,4 +212,26 @@ public class DriveSubsystem extends SubsystemBase {
   public double getTurnRate() {
     return m_gyro.getRate() * (DriveConstants.kGyroReversed ? -1.0 : 1.0);
   }
+
+  public void stopAllMotors(){
+    m_frontLeft.stopMotors();
+    m_frontRight.stopMotors();
+    m_rearLeft.stopMotors();
+    m_rearRight.stopMotors();
+  }
+
+  
+
+  public void autoBalance(){
+
+    double pitch = m_gyro.getPitch();
+    this.drive(-(navxBalance.calculate(pitch,0)), 0, 0, true);
+    System.out.println(pitch);
+    
+
+  }
+
+  
+
+  
 }
