@@ -4,6 +4,7 @@
 
 package frc.robot.subsystems;
 
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.RamseteController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -15,6 +16,7 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.ADIS16470_IMU;
+import frc.robot.RobotContainer;
 import frc.robot.Constants.DriveConstants;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
@@ -51,14 +53,18 @@ public class DriveSubsystem extends SubsystemBase {
       DriveConstants.kBackRightChassisAngularOffset);
 
   // The gyro sensor
-  private final AHRS m_gyro = new AHRS();
+  public final static AHRS m_gyro = new AHRS();
+
+  PIDController navxBalance = new PIDController(.005, 0, 0);
+
+  public boolean dummyBoo = false;
   //AHRS need to replace this
 
 
-  RamseteController controller1 = new RamseteController();
-  RamseteController controller2 = new RamseteController(2.1, 0.8);
+  // RamseteController controller1 = new RamseteController();
+  // RamseteController controller2 = new RamseteController(2.1, 0.8);
 
-  Trajectory example;
+  // Trajectory example;
  
 
 
@@ -213,6 +219,19 @@ public class DriveSubsystem extends SubsystemBase {
     m_rearLeft.stopMotors();
     m_rearRight.stopMotors();
   }
+
+  
+
+  public void autoBalance(){
+
+    double pitch = m_gyro.getPitch();
+    this.drive(-(navxBalance.calculate(pitch,0)), 0, 0, true);
+    System.out.println(pitch);
+    
+
+  }
+
+  
 
   
 }

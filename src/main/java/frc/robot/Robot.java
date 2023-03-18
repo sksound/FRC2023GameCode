@@ -8,6 +8,8 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.RobotContainer.autoBalance;
+import frc.robot.subsystems.DriveSubsystem;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -59,6 +61,10 @@ public class Robot extends TimedRobot {
 
   double armMotorSpeedUp = 1;
   double armMotorSpeedDown = 1;
+
+  
+
+
 
   
 
@@ -141,7 +147,9 @@ public class Robot extends TimedRobot {
   /** This function is called periodically during autonomous. */
   @Override
   public void autonomousPeriodic () {
-  
+  if(m_robotContainer.m_robotDrive.dummyBoo){
+    m_robotContainer.m_robotDrive.autoBalance();
+  }
   
   
   m_autonomousCommand.execute();
@@ -162,6 +170,8 @@ public class Robot extends TimedRobot {
     //cam1 = CameraServer.startAutomaticCapture(0);
 
   }
+
+
 
   /** This function is called periodically during operator control. */
   @Override
@@ -213,13 +223,16 @@ public class Robot extends TimedRobot {
     if(stick.getRawButton(3)){
       arm_motor.set(pid.calculate(encoder.getDistance(), .5));
       arm_motor2.set(pid.calculate(encoder.getDistance(), .5));
-      System.out.println(encoder.getDistance());
+      //System.out.println(encoder.getDistance());
     }
       else{
       arm_motor.set(pid.calculate(encoder.getDistance(), 0));
       arm_motor2.set(pid.calculate(encoder.getDistance(), 0));
-      System.out.println(encoder.getDistance());
+      //System.out.println(encoder.getDistance());
       }
+
+    
+    
     
                       
   

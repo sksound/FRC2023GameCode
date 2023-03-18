@@ -152,17 +152,7 @@ public final class Constants {
     public static final double kFreeSpeedRpm = 5676;
   }
 
-  // public static final class armEncoder{
-
-
-  //   public static final double kTurningEncoderPositionFactorArm = (2 * Math.PI); // radians
-  //   public static final double kTurningEncoderVelocityFactorArm = (2 * Math.PI) / 60.0; // radians per second
-
-  //   public static final double kTurningEncoderPositionPIDMinInputArm = 0; // radians
-  //   public static final double kTurningEncoderPositionPIDMaxInputArm = kTurningEncoderPositionFactorArm; // radians
-
-
-  // }
+  
 
   
 

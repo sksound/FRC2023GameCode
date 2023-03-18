@@ -35,6 +35,7 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
@@ -70,13 +71,15 @@ public class RobotContainer {
    
 
   // The robot's subsystems
-  private final DriveSubsystem m_robotDrive = new DriveSubsystem();
+  public final DriveSubsystem m_robotDrive = new DriveSubsystem();
 
   // The driver's controller
   public Joystick m_driverController = new Joystick(OIConstants.kDriverControllerPort);
   public Joystick m_driverController2 = new Joystick(OIConstants.kDriverControllerPort2);
 
   public static final HashMap <String, Command> autoEventMap = new HashMap<>();
+
+  
 
   // public CANSparkMax arm_motor = new CANSparkMax(18, MotorType.kBrushless);
   // public CANSparkMax arm_motor2 = new CANSparkMax(19, MotorType.kBrushless);
@@ -171,29 +174,25 @@ drive.stopAllMotors();
 
 }
 
+public class autoBalance extends CommandBase{
 
+  public autoBalance(DriveSubsystem drive){
+    drive.dummyBoo = true;
+    //drive.autoBalance();
 
-// public class stopRobot extends CommandBase {
+  }
+
 
   
 
-//   private final DriveSubsystem m_drive;
 
-//   public stopRobot(DriveSubsystem drive) {
-//       m_drive = drive;
-//       addRequirements(drive);
-//   }
 
-//   @Override
-//   public void initialize() {
-//       m_drive.setModuleStates(new SwerveModuleState[DriveConstants.kNumSwerveModules]);
-//   }
 
-//   @Override
-//   public void execute() {
-//       m_drive.setModuleStates(new SwerveModuleState[DriveConstants.kNumSwerveModules]);
-//   }
-// }
+
+}
+
+
+
 
 
 public Command newCommand(){
@@ -203,7 +202,8 @@ public Command newCommand(){
     thetaController.enableContinuousInput(-Math.PI, Math.PI);
 
 
-  autoEventMap.put("event", new PrintCommand("event passed"));
+  //autoEventMap.put("event", new PrintCommand("event passed"));
+ // autoEventMap.put("autoBalance", new InstantCommand(m_robotDrive::autoBalance, m_robotDrive));
 
 
 
@@ -223,7 +223,10 @@ public Command newCommand(){
     new FollowPathWithEvents(new SwerveControllerCommand(
     autoPaths.get(2), m_robotDrive::getPose, DriveConstants.kDriveKinematics, new PIDController(AutoConstants.kPXController, 0, 0), new PIDController(AutoConstants.kPYController, 0, 0), thetaController, m_robotDrive::setModuleStates, m_robotDrive), autoPaths.get(2).getMarkers(), autoEventMap),
     new InstantCommand(m_robotDrive::stopAllMotors, m_robotDrive),
+    new autoBalance(m_robotDrive),
     new WaitCommand(10)
+
+  
     
     
     
@@ -235,7 +238,55 @@ public Command newCommand(){
   //m_robotDrive.resetOdometry(autoPaths.get(1).getInitialPose());
  
   return autoTest.andThen(() -> m_robotDrive.drive(0, 0, 0, false));
+
+
   
+
+
+  
+  
+  
+}
+
+public Command autoBalance(){
+
+  var thetaController = new ProfiledPIDController(
+    AutoConstants.kPThetaController, 0, 0, AutoConstants.kThetaControllerConstraints);
+thetaController.enableContinuousInput(-Math.PI, Math.PI);
+
+
+//autoEventMap.put("autoBalance", new InstantCommand(m_robotDrive::autoBalance, m_robotDrive));
+
+
+
+List<PathPlannerTrajectory> autoPaths = PathPlanner.loadPathGroup("testPath", 2, 3);
+
+Command autoBalanceTest = new SequentialCommandGroup(
+new FollowPathWithEvents(new SwerveControllerCommand(
+autoPaths.get(0), m_robotDrive::getPose, DriveConstants.kDriveKinematics, new PIDController(AutoConstants.kPXController, 0, 0), new PIDController(AutoConstants.kPYController, 0, 0), thetaController, m_robotDrive::setModuleStates, m_robotDrive), autoPaths.get(0).getMarkers(), autoEventMap),
+new InstantCommand(m_robotDrive::stopAllMotors, m_robotDrive),
+new autoBalance(m_robotDrive),
+new WaitCommand(5)
+
+
+
+
+
+
+
+
+
+
+
+);
+
+
+m_robotDrive.resetOdometry(autoPaths.get(0).getInitialPose());
+//m_robotDrive.resetOdometry(autoPaths.get(1).getInitialPose());
+
+return autoBalanceTest.andThen(() -> m_robotDrive.drive(0, 0, 0, false));
+
+
 }
 
 
