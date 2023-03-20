@@ -66,9 +66,6 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
  */
 public class RobotContainer {
 
-  
-
-   
 
   // The robot's subsystems
   public final DriveSubsystem m_robotDrive = new DriveSubsystem();
@@ -78,21 +75,7 @@ public class RobotContainer {
   public Joystick m_driverController2 = new Joystick(OIConstants.kDriverControllerPort2);
 
   public static final HashMap <String, Command> autoEventMap = new HashMap<>();
-
-  
-
-  // public CANSparkMax arm_motor = new CANSparkMax(18, MotorType.kBrushless);
-  // public CANSparkMax arm_motor2 = new CANSparkMax(19, MotorType.kBrushless);
-
-  // RelativeEncoder throughBoreEncoder = arm_motor.getEncoder();
-
-  // double armEncoderPosition = throughBoreEncoder.getPosition();
-
-  
-
-  
-
-  
+    
 
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
@@ -122,10 +105,6 @@ public class RobotContainer {
   }
 
 
-  
-
-
-
   /**
    * Use this method to define your button->command mappings. Buttons can be
    * created by
@@ -148,21 +127,8 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
 
-// public class updateSpeed extends CommandBase{
-
-//   public updateSpeed(Pose2d currentRobotPose){
-//     Trajectory.State goal = example.sample(3.4); // sample the trajectory at 3.4 seconds from the beginning
-//     ChassisSpeeds adjustedSpeeds = controller2.calculate(currentRobotPose, goal);
-//   }
-
-// }
-
+//stops all motors
 public class stopRobot extends CommandBase{
-
-
-
-
-
 
 public stopRobot(DriveSubsystem drive){
   
@@ -174,6 +140,7 @@ drive.stopAllMotors();
 
 }
 
+//used to loop autbalance method
 public class autoBalance extends CommandBase{
 
   public autoBalance(DriveSubsystem drive){
@@ -183,18 +150,12 @@ public class autoBalance extends CommandBase{
   }
 
 
-  
-
-
-
-
-
 }
 
 
 
 
-
+//picks up cube, places, and autobalances
 public Command newCommand(){
 
   var thetaController = new ProfiledPIDController(
@@ -225,12 +186,6 @@ public Command newCommand(){
     new InstantCommand(m_robotDrive::stopAllMotors, m_robotDrive),
     new autoBalance(m_robotDrive),
     new WaitCommand(10)
-
-  
-    
-    
-    
-  
   );
 
   
@@ -238,16 +193,10 @@ public Command newCommand(){
   //m_robotDrive.resetOdometry(autoPaths.get(1).getInitialPose());
  
   return autoTest.andThen(() -> m_robotDrive.drive(0, 0, 0, false));
-
-
-  
-
-
-  
   
   
 }
-
+//autobalance testing
 public Command autoBalance(){
 
   var thetaController = new ProfiledPIDController(
@@ -289,83 +238,11 @@ return autoBalanceTest.andThen(() -> m_robotDrive.drive(0, 0, 0, false));
 
 }
 
-
+//individual path testing
   public Command getAutonomousCommand() {
 
  
     PathPlannerTrajectory examplePath = PathPlanner.loadPath("autoTest", new PathConstraints(4, 3));
-    //PathPlannerState exampleState = (PathPlannerState) examplePath.sample(1.2);
-    //System.out.println(exampleState.velocityMetersPerSecond);
- 
- 
- 
-  //     String trajectoryJSON = "src\\main\\deploy\\pathplanner\\generatedJSONgeneratedJSON\\New Path.wpilib.json";
-  //   Trajectory trajectory = new Trajectory();
-
-  //   try {
-  //     Path trajectoryPath = Filesystem.getDeployDirectory().toPath().resolve(trajectoryJSON);
-  //     trajectory = TrajectoryUtil.fromPathweaverJson(trajectoryPath);
-  //  } catch (IOException ex) {
-  //     DriverStation.reportError("Unable to open trajectory: " + trajectoryJSON, ex.getStackTrace());
-  //  }
-
-    
-
-   
-
-    // Create config for trajectory
-
-    //An example trajectory to follow. All units in meters.
-
-            
-
-            // var trajectoryOne =
-            // TrajectoryGenerator.generateTrajectory(
-            // new Pose2d(0, 0, Rotation2d.fromDegrees(0)),
-            // List.of(new Translation2d(1.35, 0)),
-            // new Pose2d(2.7, 0, Rotation2d.fromDegrees(0)),
-            // new TrajectoryConfig(AutoConstants.kMaxSpeedMetersPerSecond,
-            // AutoConstants.kMaxAccelerationMetersPerSecondSquared)
-            // // Add kinematics to ensure max speed is actually obeyed
-            // .setKinematics(DriveConstants.kDriveKinematics));
-
-            // var trajectoryTwo =
-            // TrajectoryGenerator.generateTrajectory(
-            // new Pose2d(0, 0, Rotation2d.fromDegrees(0)),
-            // List.of(new Translation2d(-1.5, 0)),
-            // new Pose2d(-3, 0, Rotation2d.fromDegrees(0)),
-            // new TrajectoryConfig(AutoConstants.kMaxSpeedMetersPerSecond,
-            // AutoConstants.kMaxAccelerationMetersPerSecondSquared)
-            // // Add kinematics to ensure max speed is actually obeyed
-            // .setKinematics(DriveConstants.kDriveKinematics));
-
-            // var trajectoryThree =
-            // TrajectoryGenerator.generateTrajectory(
-            // new Pose2d(3, 3, Rotation2d.fromDegrees(0)),
-            // List.of(new Translation2d(1.5, 3)),
-            // new Pose2d(0, 3, Rotation2d.fromDegrees(0)),
-            // new TrajectoryConfig(AutoConstants.kMaxSpeedMetersPerSecond,
-            // AutoConstants.kMaxAccelerationMetersPerSecondSquared)
-            // // Add kinematics to ensure max speed is actually obeyed
-            // .setKinematics(DriveConstants.kDriveKinematics));
-
-            // var trajectoryFour =
-            // TrajectoryGenerator.generateTrajectory(
-            // new Pose2d(0, 3, Rotation2d.fromDegrees(0)),
-            // List.of(new Translation2d(0, 1.5)),
-            // new Pose2d(0, 0, Rotation2d.fromDegrees(0)),
-            // new TrajectoryConfig(AutoConstants.kMaxSpeedMetersPerSecond,
-            // AutoConstants.kMaxAccelerationMetersPerSecondSquared)
-            // // Add kinematics to ensure max speed is actually obeyed
-            // .setKinematics(DriveConstants.kDriveKinematics));
-
-
-            //var concatTraj = trajectoryOne;
-           
-            
-       
-
-  
 
     var thetaController = new ProfiledPIDController(
         AutoConstants.kPThetaController, 0, 0, AutoConstants.kThetaControllerConstraints);

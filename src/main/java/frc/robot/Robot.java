@@ -176,15 +176,23 @@ public class Robot extends TimedRobot {
   /** This function is called periodically during operator control. */
   @Override
   public void teleopPeriodic() {
-
-    if(stick.getRawButton(1)){
-      Constants.DriveConstants.kMaxSpeedMetersPerSecond = 5;
-
+    // Slow Mode
+    if(stick.getRawButton(6)){
+      Constants.DriveConstants.kMaxSpeedMetersPerSecond = 1;
+      Constants.DriveConstants.kMaxAngularSpeed = .5 * Math.PI;
     }
     else{
       Constants.DriveConstants.kMaxSpeedMetersPerSecond = 3;
-
+      Constants.DriveConstants.kMaxAngularSpeed = 1.5 * Math.PI;
     }
+    // Fast Mode
+    if(stick.getRawButton(7)){
+      Constants.DriveConstants.kMaxSpeedMetersPerSecond = 5;
+    }
+    else{
+      Constants.DriveConstants.kMaxSpeedMetersPerSecond = 3;
+    }
+
 
       
     
@@ -220,16 +228,16 @@ public class Robot extends TimedRobot {
       System.out.println("switched forward");
     }
 
-    if(stick.getRawButton(3)){
-      arm_motor.set(pid.calculate(encoder.getDistance(), .5));
-      arm_motor2.set(pid.calculate(encoder.getDistance(), .5));
-      //System.out.println(encoder.getDistance());
-    }
-      else{
-      arm_motor.set(pid.calculate(encoder.getDistance(), 0));
-      arm_motor2.set(pid.calculate(encoder.getDistance(), 0));
-      //System.out.println(encoder.getDistance());
-      }
+    // if(stick.getRawButton(3)){
+    //   arm_motor.set(pid.calculate(encoder.getDistance(), .5));
+    //   arm_motor2.set(pid.calculate(encoder.getDistance(), .5));
+    //   //System.out.println(encoder.getDistance());
+    // }
+    //   else{
+    //   arm_motor.set(pid.calculate(encoder.getDistance(), 0));
+    //   arm_motor2.set(pid.calculate(encoder.getDistance(), 0));
+    //   //System.out.println(encoder.getDistance());
+    //   }
 
     
     
