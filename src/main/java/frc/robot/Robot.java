@@ -34,8 +34,10 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
+
+import edu.wpi.first.cscore.UsbCamera;
 import edu.wpi.first.cameraserver.CameraServer;
-import edu.wpi.first.cscore.UsbCamera; 
+
 
 
 /**
@@ -91,8 +93,6 @@ public class Robot extends TimedRobot {
 
     //PhotonCamera camera = new PhotonCamera("OV5647");
 
-  //UsbCamera cam1;
-  //CameraServer cam2;
 
 
  
@@ -106,6 +106,9 @@ public class Robot extends TimedRobot {
     stick = m_robotContainer.m_driverController;
     swerveSpeed = Constants.DriveConstants.kMaxSpeedMetersPerSecond;
     rotateSpeed = Constants.DriveConstants.kMaxAngularSpeed;
+
+    UsbCamera camera = CameraServer.startAutomaticCapture();
+    camera.setResolution(640, 480);
   }
 
   /**
