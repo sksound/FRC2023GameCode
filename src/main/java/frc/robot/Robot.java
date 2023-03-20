@@ -6,6 +6,7 @@ package frc.robot;
 
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.RobotContainer.autoBalance;
@@ -34,10 +35,8 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
-
-import edu.wpi.first.cscore.UsbCamera;
 import edu.wpi.first.cameraserver.CameraServer;
-
+import edu.wpi.first.cscore.UsbCamera; 
 
 
 /**
@@ -64,13 +63,6 @@ public class Robot extends TimedRobot {
   double armMotorSpeedUp = 1;
   double armMotorSpeedDown = 1;
 
-  
-
-
-
-  
-
-
 
 
   public CANSparkMax arm_motor = new CANSparkMax(18, MotorType.kBrushless);
@@ -93,6 +85,8 @@ public class Robot extends TimedRobot {
 
     //PhotonCamera camera = new PhotonCamera("OV5647");
 
+    //UsbCamera cam1;
+    //CameraServer cam2;
 
 
  
@@ -104,11 +98,7 @@ public class Robot extends TimedRobot {
     // autonomous chooser on the dashboard.
     m_robotContainer = new RobotContainer();
     stick = m_robotContainer.m_driverController;
-    swerveSpeed = Constants.DriveConstants.kMaxSpeedMetersPerSecond;
-    rotateSpeed = Constants.DriveConstants.kMaxAngularSpeed;
-
-    UsbCamera camera = CameraServer.startAutomaticCapture();
-    camera.setResolution(640, 480);
+    
   }
 
   /**
@@ -150,12 +140,28 @@ public class Robot extends TimedRobot {
   /** This function is called periodically during autonomous. */
   @Override
   public void autonomousPeriodic () {
-  if(m_robotContainer.m_robotDrive.dummyBoo){
+    //create list of autos
+    String a[] = {"superCoolAuto", "Drive Backwards", "Shoot"};
+    //put it into list
+    SmartDashboard.putStringArray("Auto List", a);
+    //Gyro output
+    SmartDashboard.putNumber("Gyro", m_robotContainer.m_robotDrive.getHeading());
+
+
+
+// At the beginning of auto
+String autoName = SmartDashboard.getString("Auto Selector", "Drive Forwards"); // This would make "Drive Forwards the default auto
+switch(autoName) {
+   case "superCoolAuto":
+   if(m_robotContainer.m_robotDrive.dummyBoo){
     m_robotContainer.m_robotDrive.autoBalance();
   }
-  
-  
   m_autonomousCommand.execute();
+   case "Drive Backwards":
+     // auto here
+   case "Shoot":
+     // auto here
+}
  
 
   }
@@ -179,7 +185,7 @@ public class Robot extends TimedRobot {
   /** This function is called periodically during operator control. */
   @Override
   public void teleopPeriodic() {
-    // Slow Mode
+    // Slow Mode for rotation and movement
     if(stick.getRawButton(6)){
       Constants.DriveConstants.kMaxSpeedMetersPerSecond = 1;
       Constants.DriveConstants.kMaxAngularSpeed = .5 * Math.PI;
@@ -196,53 +202,49 @@ public class Robot extends TimedRobot {
       Constants.DriveConstants.kMaxSpeedMetersPerSecond = 3;
     }
 
-    System.out.println("fortnite");
+    
 
 
       
     
-    //double armSpeedUp = stick2.getRawAxis(1) * armMotorSpeedUp;
-    // double armSpeedDown = stick2.getRawAxis(1) * armMotorSpeedDown;
-    
-    
-    //arm movement
 
-    
+    //vertically up location
     if(stick2.getRawButton(1 )){
-      arm_motor.set(1);
-      arm_motor2.set(1);
+      arm_motor.set(pid.calculate(encoder.getDistance(), .5));
+      arm_motor2.set(pid.calculate(encoder.getDistance(), .5));
     }
+    //pick up location
+    else if(stick2.getRawButton(2)){
+      arm_motor.set(pid.calculate(encoder.getDistance(), .5));
+      arm_motor2.set(pid.calculate(encoder.getDistance(), .5));
+    }
+    //backwards location
+    else if(stick2.getRawButton(3)){
+      arm_motor.set(pid.calculate(encoder.getDistance(), .5));
+      arm_motor2.set(pid.calculate(encoder.getDistance(), .5));
+    }
+    //mid level cone/cube position
     else if(stick2.getRawButton(4)){
-      arm_motor.set(-1);
-      arm_motor2.set(-1);
-    }
-    else{
-      arm_motor.set(0);
-      arm_motor2.set(0);
+      arm_motor.set(pid.calculate(encoder.getDistance(), .5));
+      arm_motor2.set(pid.calculate(encoder.getDistance(), .5));
     }
     
     
  
-
+    //claw open
     if(stick2.getRawButton(2)){
       telescopic_arm.set(Value.kReverse);
       System.out.println("switched reverse");
     }
+    //claw closed
     if(stick2.getRawButton(3)){
       telescopic_arm.set(Value.kForward);
       System.out.println("switched forward");
     }
 
-    // if(stick.getRawButton(3)){
-    //   arm_motor.set(pid.calculate(encoder.getDistance(), .5));
-    //   arm_motor2.set(pid.calculate(encoder.getDistance(), .5));
-    //   //System.out.println(encoder.getDistance());
-    // }
-    //   else{
-    //   arm_motor.set(pid.calculate(encoder.getDistance(), 0));
-    //   arm_motor2.set(pid.calculate(encoder.getDistance(), 0));
-    //   //System.out.println(encoder.getDistance());
-    //   }
+
+    
+
 
     
     
