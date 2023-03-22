@@ -6,6 +6,7 @@ package frc.robot;
 
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -63,6 +64,9 @@ public class Robot extends TimedRobot {
   double armMotorSpeedUp = 1;
   double armMotorSpeedDown = 1;
 
+  String[] autonomousList = {"superCoolAuto", "driveForward"};
+
+  String autoSelected;
 
 
   public CANSparkMax arm_motor = new CANSparkMax(18, MotorType.kBrushless);
@@ -88,6 +92,35 @@ public class Robot extends TimedRobot {
     //UsbCamera cam1;
     //CameraServer cam2;
 
+  public void armAuto1(){
+    telescopic_arm.set(Value.kForward);
+    arm_motor.set(pid.calculate(encoder.getDistance(), .5));
+    arm_motor2.set(pid.calculate(encoder.getDistance(), .5));
+    telescopic_arm.set(Value.kReverse);
+
+  }
+
+  public void armAuto2(){
+
+    arm_motor.set(pid.calculate(encoder.getDistance(), .5));
+    arm_motor2.set(pid.calculate(encoder.getDistance(), .5));
+    telescopic_arm.set(Value.kForward);
+    arm_motor.set(pid.calculate(encoder.getDistance(), .5));
+    arm_motor2.set(pid.calculate(encoder.getDistance(), .5));
+
+
+
+
+
+  }
+
+  public void armAuto3(){
+    telescopic_arm.set(Value.kReverse);
+
+
+
+  }
+
 
  
  
@@ -98,7 +131,9 @@ public class Robot extends TimedRobot {
     // autonomous chooser on the dashboard.
     m_robotContainer = new RobotContainer();
     stick = m_robotContainer.m_driverController;
-    
+
+    SmartDashboard.putStringArray("Auto List", autonomousList);
+
   }
 
   /**
@@ -135,31 +170,30 @@ public class Robot extends TimedRobot {
     if (m_autonomousCommand != null) {
       m_autonomousCommand.schedule();
     }
+
+    
+   autoSelected = SmartDashboard.getString("Auto Selector", "None");
+  
   }
+
+  
 
   /** This function is called periodically during autonomous. */
   @Override
   public void autonomousPeriodic () {
-    //create list of autos
-    String a[] = {"superCoolAuto", "Drive Backwards", "Shoot"};
-    //put it into list
-    SmartDashboard.putStringArray("Auto List", a);
-    //Gyro output
-    SmartDashboard.putNumber("Gyro", m_robotContainer.m_robotDrive.getHeading());
-
-
+    
 
 // At the beginning of auto
-String autoName = SmartDashboard.getString("Auto Selector", "Drive Forwards"); // This would make "Drive Forwards the default auto
-switch(autoName) {
-   case "superCoolAuto":
-   if(m_robotContainer.m_robotDrive.dummyBoo){
-    m_robotContainer.m_robotDrive.autoBalance();
-  }
-  m_autonomousCommand.execute();
-   case "Drive Backwards":
-     // auto here
-   case "Shoot":
+
+switch(autoSelected) {
+    case "superCoolAuto":
+      if(m_robotContainer.m_robotDrive.dummyBoo){
+        m_robotContainer.m_robotDrive.autoBalance();
+      }
+    m_autonomousCommand.execute();
+    break;
+    case "driveForward":
+    break;
      // auto here
 }
  

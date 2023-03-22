@@ -127,6 +127,39 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
 
+
+public class armPart1 extends CommandBase{
+
+public armPart1(Robot e){
+
+e.armAuto1();
+
+}
+
+}
+
+public class armPart2 extends CommandBase{
+
+public armPart2(Robot e){
+  
+e.armAuto2();
+  
+}
+  
+}
+
+public class armPart3 extends CommandBase{
+
+public armPart3(Robot e){
+    
+e.armAuto3();
+    
+}
+    
+}
+
+
+
 //stops all motors
 public class stopRobot extends CommandBase{
 
