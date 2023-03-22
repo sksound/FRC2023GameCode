@@ -26,6 +26,8 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.trajectory.TrajectoryUtil;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
@@ -49,13 +51,13 @@ import edu.wpi.first.cscore.UsbCamera;
  */
 public class Robot extends TimedRobot {
 
-  
+  //global variables
 
   private Command m_autonomousCommand;
 
   private RobotContainer m_robotContainer;
   
-
+  
   Joystick stick;
   Joystick stick2 = new Joystick(1);
 
@@ -68,6 +70,8 @@ public class Robot extends TimedRobot {
   String[] autonomousList = {"superCoolAuto", "driveForward"};
 
   String autoSelected;
+
+
 
 
   public CANSparkMax arm_motor = new CANSparkMax(18, MotorType.kBrushless);
@@ -86,12 +90,6 @@ public class Robot extends TimedRobot {
   public static final DoubleSolenoid telescopic_arm  = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 3, 2);
  
 
-    // Change this to match the name of your camera
-
-    //PhotonCamera camera = new PhotonCamera("OV5647");
-
-    //UsbCamera cam1;
-    //CameraServer cam2;
 
   public void armAuto1(){
     telescopic_arm.set(Value.kForward);
@@ -134,7 +132,15 @@ public class Robot extends TimedRobot {
     stick = m_robotContainer.m_driverController;
 
     SmartDashboard.putStringArray("Auto List", autonomousList);
+    
 
+
+    UsbCamera camera = CameraServer.startAutomaticCapture(0);
+    camera.setResolution(640, 480);
+
+    NetworkTableEntry camerSelection = NetworkTableInstance.getDefault().getTable("").getEntry("CameraSelection");
+
+    camerSelection.setString(camera.getName());
   }
 
   /**
@@ -211,7 +217,7 @@ switch(autoSelected) {
       m_autonomousCommand.cancel();
     }
     
-    //cam1 = CameraServer.startAutomaticCapture(0);
+    
 
   }
 
@@ -221,25 +227,24 @@ switch(autoSelected) {
   @Override
   public void teleopPeriodic() {
     // Slow Mode for rotation and movement
-    if(stick.getRawButton(6)){
+    if(stick.getRawAxis(2)>.5){
       Constants.DriveConstants.kMaxSpeedMetersPerSecond = 1;
       Constants.DriveConstants.kMaxAngularSpeed = .5 * Math.PI;
+    }
+    // Fast Mode
+    else if(stick.getRawAxis(3)>.5){
+      Constants.DriveConstants.kMaxSpeedMetersPerSecond = 5;
     }
     else{
       Constants.DriveConstants.kMaxSpeedMetersPerSecond = 3;
       Constants.DriveConstants.kMaxAngularSpeed = 1.5 * Math.PI;
     }
-    // Fast Mode
-    if(stick.getRawButton(7)){
-      Constants.DriveConstants.kMaxSpeedMetersPerSecond = 5;
-    }
-    else{
-      Constants.DriveConstants.kMaxSpeedMetersPerSecond = 3;
-    }
 
+
+    if(stick.getRawButton(1)){
+      m_robotContainer.m_robotDrive.autoBalance();
+    }
     
-
-
       
     
 
