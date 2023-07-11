@@ -55,7 +55,7 @@ public class DriveSubsystem extends SubsystemBase {
   // The gyro sensor
   public final static AHRS m_gyro = new AHRS();
 
-  PIDController navxBalance = new PIDController(.005, 0, 0);
+  PIDController navxBalance = new PIDController(.0075, 0, 0.000125);
 
   public boolean dummyBoo = false;
   //AHRS need to replace this
@@ -224,10 +224,19 @@ public class DriveSubsystem extends SubsystemBase {
 
   public void autoBalance(){
 
-    double pitch = m_gyro.getPitch();
-    this.drive(-(navxBalance.calculate(pitch,0)), 0, 0, true);
-    System.out.println(pitch);
+    double roll = m_gyro.getPitch();
     
+    
+
+    if(DriverStation.getAlliance() == DriverStation.Alliance.Blue){
+
+      this.drive((navxBalance.calculate(roll,0)), 0, 0, true);
+
+    }
+    else {
+      this.drive(-(navxBalance.calculate(roll,0)), 0, 0, true);
+    }
+
 
   }
 

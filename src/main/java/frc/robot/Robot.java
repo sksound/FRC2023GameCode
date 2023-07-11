@@ -16,6 +16,7 @@ import frc.robot.subsystems.DriveSubsystem;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Set;
 
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonUtils;
@@ -23,6 +24,7 @@ import org.photonvision.PhotonUtils;
 import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.trajectory.TrajectoryUtil;
 import edu.wpi.first.math.util.Units;
@@ -40,7 +42,8 @@ import com.revrobotics.RelativeEncoder;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.first.cameraserver.CameraServer;
-import edu.wpi.first.cscore.UsbCamera; 
+import edu.wpi.first.cscore.UsbCamera;
+import edu.wpi.first.cscore.VideoSource.ConnectionStrategy; 
 
 
 /**
@@ -59,7 +62,7 @@ public class Robot extends TimedRobot {
   
   
   Joystick stick;
-  Joystick stick2 = new Joystick(1);
+  Joystick stick2;
 
   double swerveSpeed;
   double rotateSpeed;
@@ -67,59 +70,29 @@ public class Robot extends TimedRobot {
   double armMotorSpeedUp = 1;
   double armMotorSpeedDown = 1;
 
-  String[] autonomousList = {"superCoolAuto", "driveForward"};
+  String[] autonomousList = {"PPSwerveCommand", "coneCubeCorner", "cubeAutoBalance"};
 
   String autoSelected;
 
-
-
-
-  public CANSparkMax arm_motor = new CANSparkMax(18, MotorType.kBrushless);
+  public  CANSparkMax arm_motor = new CANSparkMax(18, MotorType.kBrushless);
   public CANSparkMax arm_motor2 = new CANSparkMax(19, MotorType.kBrushless);
-
-  // RelativeEncoder throughBoreEncoder = arm_motor.getEncoder();
-
-  // double armEncoderPosition = throughBoreEncoder.getPosition();
 
   DutyCycleEncoder encoder = new DutyCycleEncoder(0);
 
-  PIDController pid = new PIDController(1, 0, 0);
-  
+  PIDController pid = new PIDController(3, 0, 2);
+
+  double setpoint;
+  double intermediate_setpoint;
+
+  UsbCamera camera;
+  UsbCamera camera2;
+
+  NetworkTableEntry cameraSelection;
+
 
   // Pneumatics
-  public static final DoubleSolenoid telescopic_arm  = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 3, 2);
+  public static DoubleSolenoid telescopic_arm  = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 3, 2);
  
-
-
-  public void armAuto1(){
-    telescopic_arm.set(Value.kForward);
-    arm_motor.set(pid.calculate(encoder.getDistance(), .5));
-    arm_motor2.set(pid.calculate(encoder.getDistance(), .5));
-    telescopic_arm.set(Value.kReverse);
-
-  }
-
-  public void armAuto2(){
-
-    arm_motor.set(pid.calculate(encoder.getDistance(), .5));
-    arm_motor2.set(pid.calculate(encoder.getDistance(), .5));
-    telescopic_arm.set(Value.kForward);
-    arm_motor.set(pid.calculate(encoder.getDistance(), .5));
-    arm_motor2.set(pid.calculate(encoder.getDistance(), .5));
-
-
-
-
-
-  }
-
-  public void armAuto3(){
-    telescopic_arm.set(Value.kReverse);
-
-
-
-  }
-
 
  
  
@@ -135,12 +108,27 @@ public class Robot extends TimedRobot {
     
 
 
-    UsbCamera camera = CameraServer.startAutomaticCapture(0);
-    camera.setResolution(640, 480);
+    camera = CameraServer.startAutomaticCapture(0);
+    camera.setResolution(320, 240);
 
-    NetworkTableEntry camerSelection = NetworkTableInstance.getDefault().getTable("").getEntry("CameraSelection");
+    camera2 = CameraServer.startAutomaticCapture(1);
+     camera2.setResolution(320, 240);
 
-    camerSelection.setString(camera.getName());
+    
+    cameraSelection = NetworkTableInstance.getDefault().getTable("").getEntry("CameraSelection");
+    // cameraSelection.setString(camera.getName());
+    
+    camera.setConnectionStrategy(ConnectionStrategy.kKeepOpen);
+    camera2.setConnectionStrategy(ConnectionStrategy.kKeepOpen);
+
+
+    cameraSelection.setString(camera.getName());
+
+
+    stick2 = new Joystick(1);
+
+    setpoint = .5;
+    m_robotContainer.armState = setpoint;
   }
 
   /**
@@ -169,8 +157,36 @@ public class Robot extends TimedRobot {
   /** This autonomous runs the autonomous command selected by your {@link RobotContainer} class. */
   @Override
   public void autonomousInit() {
-    //m_autonomousCommand = m_robotContainer.getAutonomousCommand();
-  m_autonomousCommand = m_robotContainer.newCommand();
+
+    setpoint = .5;
+
+    autoSelected = SmartDashboard.getString("Auto Selector", "None");
+    
+    switch(autoSelected) {
+      case "superCoolAuto":
+      m_autonomousCommand = m_robotContainer.getAutonomousCommand();
+      break;
+      case "autoBalanceTest":
+      m_autonomousCommand = m_robotContainer.newCommand();
+      break;
+      case "armTest":
+      m_autonomousCommand = m_robotContainer.armStuff();
+      break;
+      case "simpleCubeAuto":
+      m_autonomousCommand = m_robotContainer.simpleCubeAuto();
+      break;
+      case "PPSwerveCommand":
+      m_autonomousCommand = m_robotContainer.followTrajectoryCommand();
+      break;
+      case "coneCubeCorner":
+      m_autonomousCommand = m_robotContainer.coneCubeCorner();
+      break;
+      case "cubeAutoBalance":
+      m_autonomousCommand = m_robotContainer.cubeAutoBalance();
+      break;
+    }
+    
+    
 
 
     // schedule the autonomous command (example)
@@ -179,33 +195,48 @@ public class Robot extends TimedRobot {
     }
 
     
-   autoSelected = SmartDashboard.getString("Auto Selector", "None");
+   
   
   }
+
 
   
 
   /** This function is called periodically during autonomous. */
   @Override
   public void autonomousPeriodic () {
-    
 
-// At the beginning of auto
 
-switch(autoSelected) {
-    case "superCoolAuto":
-      if(m_robotContainer.m_robotDrive.dummyBoo){
-        m_robotContainer.m_robotDrive.autoBalance();
-      }
-    m_autonomousCommand.execute();
-    break;
-    case "driveForward":
-    break;
-     // auto here
-}
- 
+  // At the beginning of auto
 
+  m_autonomousCommand.execute();
+      // auto here  
+
+  if(m_robotContainer.m_robotDrive.dummyBoo){
+    m_robotContainer.m_robotDrive.autoBalance();
   }
+
+
+  if(m_robotContainer.isOpen){
+    telescopic_arm.set(Value.kReverse);
+    System.out.println("Open");
+    
+  }
+  else if(m_robotContainer.isOpen == false){
+    telescopic_arm.set(Value.kForward);
+    System.out.println("Close");
+    
+  }
+
+  setpoint = m_robotContainer.armState;
+  
+  arm_motor.set(-pid.calculate(encoder.getAbsolutePosition(), setpoint));
+  arm_motor2.set(-pid.calculate(encoder.getAbsolutePosition(), setpoint));
+
+      
+
+
+}
 
   @Override
   public void teleopInit() {
@@ -217,8 +248,9 @@ switch(autoSelected) {
       m_autonomousCommand.cancel();
     }
     
-    
+    setpoint = .5;
 
+  
   }
 
 
@@ -233,7 +265,8 @@ switch(autoSelected) {
     }
     // Fast Mode
     else if(stick.getRawAxis(3)>.5){
-      Constants.DriveConstants.kMaxSpeedMetersPerSecond = 5;
+      Constants.DriveConstants.kMaxSpeedMetersPerSecond = 5.5;
+     
     }
     else{
       Constants.DriveConstants.kMaxSpeedMetersPerSecond = 3;
@@ -241,55 +274,65 @@ switch(autoSelected) {
     }
 
 
-    if(stick.getRawButton(1)){
-      m_robotContainer.m_robotDrive.autoBalance();
-    }
     
-      
     
-
-    //vertically up location
-    if(stick2.getRawButton(1 )){
-      arm_motor.set(pid.calculate(encoder.getDistance(), .5));
-      arm_motor2.set(pid.calculate(encoder.getDistance(), .5));
-    }
-    //pick up location
+    if(stick2.getRawButton(1)){ 
+      setpoint = 0.5;
+      System.out.println(setpoint);
+      }
     else if(stick2.getRawButton(2)){
-      arm_motor.set(pid.calculate(encoder.getDistance(), .5));
-      arm_motor2.set(pid.calculate(encoder.getDistance(), .5));
+      setpoint = 0.765;
+      System.out.println(setpoint);
     }
-    //backwards location
     else if(stick2.getRawButton(3)){
-      arm_motor.set(pid.calculate(encoder.getDistance(), .5));
-      arm_motor2.set(pid.calculate(encoder.getDistance(), .5));
+      setpoint = 0.37;
+      System.out.println(setpoint);
     }
-    //mid level cone/cube position
     else if(stick2.getRawButton(4)){
-      arm_motor.set(pid.calculate(encoder.getDistance(), .5));
-      arm_motor2.set(pid.calculate(encoder.getDistance(), .5));
+      setpoint = 0.23;
+      System.out.println(setpoint);
     }
+
+    if (Math.abs(encoder.getAbsolutePosition() - setpoint) > 0.5) {
+      intermediate_setpoint = (encoder.getAbsolutePosition() + setpoint) / 2;
+      System.out.println("running");
+    }
+    else {
+      intermediate_setpoint = setpoint;
+    }
+
     
     
- 
+    arm_motor.set(-pid.calculate(encoder.getAbsolutePosition(), intermediate_setpoint));
+    arm_motor2.set(-pid.calculate(encoder.getAbsolutePosition(), intermediate_setpoint));
+    
+    
+    
+    
     //claw open
-    if(stick2.getRawButton(2)){
+    if(stick2.getRawButton(7)){
       telescopic_arm.set(Value.kReverse);
       System.out.println("switched reverse");
     }
     //claw closed
-    if(stick2.getRawButton(3)){
+    if(stick2.getRawButton(8)){
       telescopic_arm.set(Value.kForward);
       System.out.println("switched forward");
     }
-
-
+            
     
+     if(stick.getRawButton(8)){
+       DriveSubsystem.m_gyro.reset();
+     }
 
-
-    
-    
-    
-                      
+     if (stick.getRawButton(1)){ 
+      cameraSelection.setString(camera.getName());
+      System.out.println("cam1 set");
+      } 
+    else if (stick.getRawButton(2)) {
+      cameraSelection.setString(camera2.getName());
+      System.out.println("cam2 set");
+      }
   
   
   }
@@ -309,4 +352,5 @@ switch(autoSelected) {
 
 
   }
+  
 }

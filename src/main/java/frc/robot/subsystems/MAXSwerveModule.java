@@ -168,8 +168,7 @@ public class MAXSwerveModule {
     m_drivingSparkMax.disable();
   }
 
-  public void set(double calculate) {
-  }
+  
 
 
   

@@ -23,7 +23,9 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.PS4Controller.Button;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.DriveConstants;
@@ -49,11 +51,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+
+
 import com.pathplanner.lib.PathConstraints;
 import com.pathplanner.lib.PathPlanner;
 import com.pathplanner.lib.PathPlannerTrajectory;
 import com.pathplanner.lib.PathPlannerTrajectory.PathPlannerState;
+import com.pathplanner.lib.auto.PIDConstants;
+import com.pathplanner.lib.auto.SwerveAutoBuilder;
 import com.pathplanner.lib.commands.FollowPathWithEvents;
+import com.pathplanner.lib.commands.PPSwerveControllerCommand;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
@@ -74,7 +81,13 @@ public class RobotContainer {
   public Joystick m_driverController = new Joystick(OIConstants.kDriverControllerPort);
   public Joystick m_driverController2 = new Joystick(OIConstants.kDriverControllerPort2);
 
-  public static final HashMap <String, Command> autoEventMap = new HashMap<>();
+  // public static final HashMap <String, Command> autoEventMap = new HashMap<>();
+
+  double armState;
+
+  
+  public boolean isOpen = false;
+  
     
 
   /**
@@ -104,6 +117,15 @@ public class RobotContainer {
             );
   }
 
+  public void setArmState(double newArmState){
+
+    this.armState = newArmState;
+    
+
+  }
+
+   
+
 
   /**
    * Use this method to define your button->command mappings. Buttons can be
@@ -128,36 +150,83 @@ public class RobotContainer {
    */
 
 
-public class armPart1 extends CommandBase{
-
-public armPart1(Robot e){
-
-e.armAuto1();
-
-}
-
-}
-
-public class armPart2 extends CommandBase{
-
-public armPart2(Robot e){
   
-e.armAuto2();
-  
-}
-  
-}
 
-public class armPart3 extends CommandBase{
+public class armSet extends CommandBase{
 
-public armPart3(Robot e){
+double newArmPosSet;
+boolean isDone = false;
+
+public armSet(double newArmPos){
+      
+
+newArmPosSet = newArmPos;
     
-e.armAuto3();
     
 }
+@Override
+public void initialize(){
+  setArmState(newArmPosSet);
+  isDone = true;
+}
+@Override
+public boolean isFinished() {
+  return isDone;
+}
+    
     
 }
 
+
+public class clawOpen extends CommandBase{
+
+  boolean isDone = false;
+
+public clawOpen(){
+        
+
+  new WaitCommand(1.5);
+      
+}
+
+@Override
+public void initialize(){
+  
+  isOpen = true;
+  isDone = true;
+}
+
+public boolean isFinished(){
+  return isDone;
+}
+      
+      
+}
+
+public class clawClose extends CommandBase{
+
+  boolean isDone = false;
+
+  public clawClose(){
+          
+    new WaitCommand(1.5);
+  
+        
+  }
+
+  @Override
+public void initialize(){
+  
+  isOpen = false;
+  isDone = true;
+}
+
+public boolean isFinished(){
+  return isDone;
+}
+        
+        
+  }
 
 
 //stops all motors
@@ -176,14 +245,24 @@ drive.stopAllMotors();
 //used to loop autbalance method
 public class autoBalance extends CommandBase{
 
+  DriveSubsystem driveSet;
+
   public autoBalance(DriveSubsystem drive){
-    drive.dummyBoo = true;
+    driveSet = drive;
     //drive.autoBalance();
 
+  }
+  @Override
+  public void initialize(){
+    driveSet.dummyBoo = true;
   }
 
 
 }
+
+
+
+
 
 
 
@@ -197,25 +276,25 @@ public Command newCommand(){
 
 
   //autoEventMap.put("event", new PrintCommand("event passed"));
- // autoEventMap.put("autoBalance", new InstantCommand(m_robotDrive::autoBalance, m_robotDrive));
+  //autoEventMap.put("autoBalance", new InstantCommand(m_robotDrive::autoBalance, m_robotDrive));
 
 
 
   List<PathPlannerTrajectory> autoPaths = PathPlanner.loadPathGroup("superCoolAuto", 2, 3);
 
   Command autoTest = new SequentialCommandGroup(
-    new FollowPathWithEvents(new SwerveControllerCommand(
-    autoPaths.get(0), m_robotDrive::getPose, DriveConstants.kDriveKinematics, new PIDController(AutoConstants.kPXController, 0, 0), new PIDController(AutoConstants.kPYController, 0, 0), thetaController, m_robotDrive::setModuleStates, m_robotDrive), autoPaths.get(0).getMarkers(), autoEventMap),
+    //new FollowPathWithEvents(new SwerveControllerCommand(autoPaths.get(0), m_robotDrive::getPose, DriveConstants.kDriveKinematics, new PIDController(AutoConstants.kPXController, 0, 0), new PIDController(AutoConstants.kPYController, 0, 0), thetaController, m_robotDrive::setModuleStates, m_robotDrive), autoPaths.get(0).getMarkers(), autoEventMap),
+    new armSet(.5),
     new InstantCommand(m_robotDrive::stopAllMotors, m_robotDrive),
     new WaitCommand(2.5),
     new InstantCommand(m_robotDrive::stopAllMotors, m_robotDrive),
-    new FollowPathWithEvents(new SwerveControllerCommand(
-    autoPaths.get(1), m_robotDrive::getPose, DriveConstants.kDriveKinematics, new PIDController(AutoConstants.kPXController, 0, 0), new PIDController(AutoConstants.kPYController, 0, 0), thetaController, m_robotDrive::setModuleStates, m_robotDrive), autoPaths.get(1).getMarkers(), autoEventMap),
+    //new FollowPathWithEvents(new SwerveControllerCommand(
+    //autoPaths.get(1), m_robotDrive::getPose, DriveConstants.kDriveKinematics, new PIDController(AutoConstants.kPXController, 0, 0), new PIDController(AutoConstants.kPYController, 0, 0), thetaController, m_robotDrive::setModuleStates, m_robotDrive), autoPaths.get(1).getMarkers(), autoEventMap),
     new InstantCommand(m_robotDrive::stopAllMotors, m_robotDrive),
     new WaitCommand(2.5),
     new InstantCommand(m_robotDrive::stopAllMotors, m_robotDrive),
-    new FollowPathWithEvents(new SwerveControllerCommand(
-    autoPaths.get(2), m_robotDrive::getPose, DriveConstants.kDriveKinematics, new PIDController(AutoConstants.kPXController, 0, 0), new PIDController(AutoConstants.kPYController, 0, 0), thetaController, m_robotDrive::setModuleStates, m_robotDrive), autoPaths.get(2).getMarkers(), autoEventMap),
+    //new FollowPathWithEvents(new SwerveControllerCommand(
+    //autoPaths.get(2), m_robotDrive::getPose, DriveConstants.kDriveKinematics, new PIDController(AutoConstants.kPXController, 0, 0), new PIDController(AutoConstants.kPYController, 0, 0), thetaController, m_robotDrive::setModuleStates, m_robotDrive), autoPaths.get(2).getMarkers(), autoEventMap),
     new InstantCommand(m_robotDrive::stopAllMotors, m_robotDrive),
     new autoBalance(m_robotDrive),
     new WaitCommand(10)
@@ -244,8 +323,8 @@ thetaController.enableContinuousInput(-Math.PI, Math.PI);
 List<PathPlannerTrajectory> autoPaths = PathPlanner.loadPathGroup("testPath", 2, 3);
 
 Command autoBalanceTest = new SequentialCommandGroup(
-new FollowPathWithEvents(new SwerveControllerCommand(
-autoPaths.get(0), m_robotDrive::getPose, DriveConstants.kDriveKinematics, new PIDController(AutoConstants.kPXController, 0, 0), new PIDController(AutoConstants.kPYController, 0, 0), thetaController, m_robotDrive::setModuleStates, m_robotDrive), autoPaths.get(0).getMarkers(), autoEventMap),
+//new FollowPathWithEvents(new SwerveControllerCommand(
+//autoPaths.get(0), m_robotDrive::getPose, DriveConstants.kDriveKinematics, new PIDController(AutoConstants.kPXController, 0, 0), new PIDController(AutoConstants.kPYController, 0, 0), thetaController, m_robotDrive::setModuleStates, m_robotDrive), autoPaths.get(0).getMarkers(), autoEventMap),
 new InstantCommand(m_robotDrive::stopAllMotors, m_robotDrive),
 new autoBalance(m_robotDrive),
 new WaitCommand(5)
@@ -271,8 +350,182 @@ return autoBalanceTest.andThen(() -> m_robotDrive.drive(0, 0, 0, false));
 
 }
 
-//individual path testing
-  public Command getAutonomousCommand() {
+public Command armStuff(){
+
+  var thetaController = new ProfiledPIDController(
+    AutoConstants.kPThetaController, 0, 0, AutoConstants.kThetaControllerConstraints);
+thetaController.enableContinuousInput(-Math.PI, Math.PI);
+
+
+//autoEventMap.put("autoBalance", new InstantCommand(m_robotDrive::autoBalance, m_robotDrive));
+
+
+
+List<PathPlannerTrajectory> autoPaths = PathPlanner.loadPathGroup("testPath", 2, 3);
+
+Command armTest = new SequentialCommandGroup(
+new clawClose(),
+new armSet(.5),
+new clawOpen()
+
+);
+
+
+m_robotDrive.resetOdometry(autoPaths.get(0).getInitialPose());
+//m_robotDrive.resetOdometry(autoPaths.get(1).getInitialPose());
+
+return armTest.andThen(() -> m_robotDrive.drive(0, 0, 0, false));
+
+
+}
+
+public Command simpleCubeAuto(){
+  var thetaController = new ProfiledPIDController(
+    AutoConstants.kPThetaController, 0, 0, AutoConstants.kThetaControllerConstraints);
+thetaController.enableContinuousInput(-Math.PI, Math.PI);
+
+
+//autoEventMap.put("autoBalance", new InstantCommand(m_robotDrive::autoBalance, m_robotDrive));
+
+
+
+List<PathPlannerTrajectory> autoPaths = PathPlanner.loadPathGroup("simpleCubePoint", 2, 3);
+
+ m_robotDrive.resetOdometry(autoPaths.get(0).getInitialHolonomicPose());
+
+Command simpleCube = new SequentialCommandGroup(
+  //new FollowPathWithEvents(new SwerveControllerCommand(autoPaths.get(0), m_robotDrive::getPose, DriveConstants.kDriveKinematics, new PIDController(AutoConstants.kPXController, 0, 0), new PIDController(AutoConstants.kPYController, 0, 0), thetaController, m_robotDrive::setModuleStates, m_robotDrive), autoPaths.get(0).getMarkers(), autoEventMap),
+  new InstantCommand(m_robotDrive::stopAllMotors, m_robotDrive),
+  new WaitCommand(5),
+  new InstantCommand(m_robotDrive::stopAllMotors, m_robotDrive)
+  //new FollowPathWithEvents(new SwerveControllerCommand(autoPaths.get(1), m_robotDrive::getPose, DriveConstants.kDriveKinematics, new PIDController(AutoConstants.kPXController, 0, 0), new PIDController(AutoConstants.kPYController, 0, 0), thetaController, m_robotDrive::setModuleStates, m_robotDrive), autoPaths.get(1).getMarkers(), autoEventMap)
+);
+
+
+m_robotDrive.resetOdometry(autoPaths.get(0).getInitialPose());
+//m_robotDrive.resetOdometry(autoPaths.get(1).getInitialPose());
+
+return simpleCube.andThen(() -> m_robotDrive.drive(0, 0, 0, false));
+
+
+}
+
+public Command followTrajectoryCommand() {
+
+  HashMap <String, Command> autoEventMap = new HashMap<>();
+
+  autoEventMap.put("armDown", new armSet(.24));
+  autoEventMap.put("armUp", new armSet(.5));
+  autoEventMap.put("setConePos", new armSet(.357));
+  autoEventMap.put("pickUpCone", new clawClose());
+  autoEventMap.put("dropCone", new clawOpen());
+  autoEventMap.put("autoBalance", new autoBalance(m_robotDrive));
+  autoEventMap.put("initArmDown", new armSet(.357));
+  autoEventMap.put("dropCube", new clawOpen());
+  autoEventMap.put("initArmBackUp", new armSet(.5));
+  autoEventMap.put("wait1", new WaitCommand(2));
+  autoEventMap.put("coneArmUp", new armSet(.5));
+
+  List<PathPlannerTrajectory> autoPaths = PathPlanner.loadPathGroup("ConeCubeAutoBalance", 3, 3);
+
+
+   SwerveAutoBuilder autoBuilder = new SwerveAutoBuilder(
+    m_robotDrive::getPose, // Pose2d supplier
+    m_robotDrive::resetOdometry, // Pose2d consumer, used to reset odometry at the beginning of auto
+    DriveConstants.kDriveKinematics, // SwerveDriveKinematics
+    new PIDConstants(1, 0.0, .25), // PID constants to correct for translation error (used to create the X and Y PID controllers)
+    new PIDConstants(1, 0.0, 0.25), // PID constants to correct for rotation error (used to create the rotation controller)
+    m_robotDrive::setModuleStates, // Module states consumer used to output to the drive subsystem
+    autoEventMap,
+    true, // Should the path be automatically mirrored depending on alliance color. Optional, defaults to true
+    m_robotDrive // The drive subsystem. Used to properly set the requirements of path following commands
+);
+
+Command fullAuto = autoBuilder.fullAuto(autoPaths);
+
+return fullAuto;
+  
+
+}
+
+public Command coneCubeCorner(){
+  HashMap <String, Command> autoEventMap = new HashMap<>();
+
+  
+
+  autoEventMap.put("initClose", new clawClose());
+  autoEventMap.put("armDown", new armSet(.765));
+  autoEventMap.put("armUp", new armSet(.5));
+  autoEventMap.put("setConePos", new armSet(.357));
+  autoEventMap.put("pickUpCone", new clawClose());
+  autoEventMap.put("dropCone", new clawOpen());
+  autoEventMap.put("autoBalance", new autoBalance(m_robotDrive));
+  autoEventMap.put("initArmDown", new armSet(.357));
+  autoEventMap.put("dropCube", new clawOpen());
+  autoEventMap.put("initArmBackUp", new armSet(.5));
+  autoEventMap.put("wait1", new WaitCommand(2));
+  autoEventMap.put("coneArmUp", new armSet(.5));
+
+  List<PathPlannerTrajectory> autoPaths = PathPlanner.loadPathGroup("ConeCubeAutoBalanceBackwards", 3, 3);
+
+
+   SwerveAutoBuilder autoBuilder = new SwerveAutoBuilder(
+    m_robotDrive::getPose, // Pose2d supplier
+    m_robotDrive::resetOdometry, // Pose2d consumer, used to reset odometry at the beginning of auto
+    DriveConstants.kDriveKinematics, // SwerveDriveKinematics
+    new PIDConstants(4, 0.0, .25), // PID constants to correct for translation error (used to create the X and Y PID controllers)
+    new PIDConstants(4, 0.0, 0.25), // PID constants to correct for rotation error (used to create the rotation controller)
+    m_robotDrive::setModuleStates, // Module states consumer used to output to the drive subsystem
+    autoEventMap,
+    true, // Should the path be automatically mirrored depending on alliance color. Optional, defaults to true
+    m_robotDrive // The drive subsystem. Used to properly set the requirements of path following commands
+);
+
+Command fullAuto = autoBuilder.fullAuto(autoPaths);
+
+return fullAuto;
+  
+
+}
+
+public Command cubeAutoBalance(){
+
+  System.out.println("code for autobalance worked");
+
+  HashMap <String, Command> autoEventMap = new HashMap<>();
+
+  autoEventMap.put("initClose", new clawClose());
+  autoEventMap.put("armUp", new armSet(.5));
+  autoEventMap.put("autoBalance", new autoBalance(m_robotDrive));
+  autoEventMap.put("initArmDown", new armSet(.357));
+  autoEventMap.put("dropCube", new clawOpen());
+  autoEventMap.put("initArmBackUp", new armSet(.5));
+  autoEventMap.put("coneArmUp", new armSet(.5));
+
+  List<PathPlannerTrajectory> autoPaths = PathPlanner.loadPathGroup("cubeAutoBalance", 3, 3);
+
+
+   SwerveAutoBuilder autoBuilder = new SwerveAutoBuilder(
+    m_robotDrive::getPose, // Pose2d supplier
+    m_robotDrive::resetOdometry, // Pose2d consumer, used to reset odometry at the beginning of auto
+    DriveConstants.kDriveKinematics, // SwerveDriveKinematics
+    new PIDConstants(4, 0.0, .25), // PID constants to correct for translation error (used to create the X and Y PID controllers)
+    new PIDConstants(4, 0.0, 0.25), // PID constants to correct for rotation error (used to create the rotation controller)
+    m_robotDrive::setModuleStates, // Module states consumer used to output to the drive subsystem
+    autoEventMap,
+    true, // Should the path be automatically mirrored depending on alliance color. Optional, defaults to true
+    m_robotDrive // The drive subsystem. Used to properly set the requirements of path following commands
+);
+
+Command fullAuto = autoBuilder.fullAuto(autoPaths);
+
+return fullAuto;
+  
+
+}
+
+
+public Command getAutonomousCommand() {
 
  
     PathPlannerTrajectory examplePath = PathPlanner.loadPath("autoTest", new PathConstraints(4, 3));
@@ -309,3 +562,4 @@ return autoBalanceTest.andThen(() -> m_robotDrive.drive(0, 0, 0, false));
  
   
 }
+
