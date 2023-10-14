@@ -76,6 +76,7 @@ public class Robot extends TimedRobot {
 
   public  CANSparkMax arm_motor = new CANSparkMax(18, MotorType.kBrushless);
   public CANSparkMax arm_motor2 = new CANSparkMax(19, MotorType.kBrushless);
+  public CANSparkMax ext_arm_motor = new CANSparkMax(50, MotorType.kBrushless);
 
   DutyCycleEncoder encoder = new DutyCycleEncoder(0);
 
@@ -306,7 +307,13 @@ public class Robot extends TimedRobot {
     arm_motor.set(-pid.calculate(encoder.getAbsolutePosition(), intermediate_setpoint));
     arm_motor2.set(-pid.calculate(encoder.getAbsolutePosition(), intermediate_setpoint));
     
-    
+    ext_arm_motor.set(0);
+    if(stick.getRawButton(2)){
+      ext_arm_motor.set(1);
+    }
+    if(stick.getRawButton(1)){
+      ext_arm_motor.set(-1);
+    }
     
     
     //claw open
