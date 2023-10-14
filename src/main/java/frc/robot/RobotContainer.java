@@ -494,11 +494,11 @@ public Command cubeAutoBalance(){
 
   HashMap <String, Command> autoEventMap = new HashMap<>();
 
+  autoEventMap.put("initArmDown", new armSet(.357));
+  autoEventMap.put("dropCube", new clawOpen());
   autoEventMap.put("initClose", new clawClose());
   autoEventMap.put("armUp", new armSet(.5));
   autoEventMap.put("autoBalance", new autoBalance(m_robotDrive));
-  autoEventMap.put("initArmDown", new armSet(.357));
-  autoEventMap.put("dropCube", new clawOpen());
   autoEventMap.put("initArmBackUp", new armSet(.5));
   autoEventMap.put("coneArmUp", new armSet(.5));
 
